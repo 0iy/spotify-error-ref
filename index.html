@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spotify Desktop — Error Reference</title>
+<style>
+/* ── Tokens ─────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:        #ffffff;
+  --bg-subtle: #f7f7f8;
+  --border:    #e4e4e7;
+  --border-lo: #f0f0f2;
+  --text:      #18181b;
+  --text-2:    #52525b;
+  --text-3:    #a1a1aa;
+  --accent:    #16a34a;
+  --accent-bg: #f0fdf4;
+  --code-bg:   #f4f4f5;
+  --code-bd:   #e4e4e7;
+  --fatal-fg:  #dc2626;  --fatal-bg:  #fef2f2;
+  --error-fg:  #c2410c;  --error-bg:  #fff7ed;
+  --warn-fg:   #a16207;  --warn-bg:   #fefce8;
+  --info-fg:   #1d4ed8;  --info-bg:   #eff6ff;
+  --chain-line:#d4d4d8;
+  --node-bd:   #e4e4e7;
+  --node-fragile: #fdba74;
+  --node-critical:#fca5a5;
+  --node-good: #86efac;
+}
+[data-theme="dark"] {
+  --bg:        #0f0f11;
+  --bg-subtle: #18181b;
+  --border:    #27272a;
+  --border-lo: #1c1c1f;
+  --text:      #fafafa;
+  --text-2:    #a1a1aa;
+  --text-3:    #52525b;
+  --accent:    #4ade80;
+  --accent-bg: #052e16;
+  --code-bg:   #18181b;
+  --code-bd:   #27272a;
+  --fatal-fg:  #f87171;  --fatal-bg:  #2d0707;
+  --error-fg:  #fb923c;  --error-bg:  #2d1300;
+  --warn-fg:   #fbbf24;  --warn-bg:   #1c1100;
+  --info-fg:   #60a5fa;  --info-bg:   #0a1628;
+  --chain-line:#3f3f46;
+  --node-bd:   #27272a;
+  --node-fragile: #78350f;
+  --node-critical:#7f1d1d;
+  --node-good: #14532d;
+}
+
+/* ── Reset ───────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .15s,color .15s}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:ui-monospace,'Cascadia Code','Fira Code',Consolas,monospace;font-size:.82em;background:var(--code-bg);border:1px solid var(--code-bd);border-radius:3px;padding:1px 5px;white-space:nowrap}
+
+/* ── Layout ──────────────────────────────────────────────────── */
+.shell{display:flex;min-height:100vh}
+.nav{width:218px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 0 40px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg)}
+.body{flex:1;max-width:780px;padding:44px 52px 80px}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.nav-top{padding:0 18px 22px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.nav-logo{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px}
+.nav-logo svg{color:var(--accent);flex-shrink:0}
+.search{width:100%;background:var(--bg-subtle);border:1px solid var(--border);border-radius:5px;padding:6px 10px;font-size:13px;color:var(--text);outline:none;font-family:inherit;transition:border-color .12s}
+.search:focus{border-color:var(--accent)}
+.search::placeholder{color:var(--text-3)}
+
+.nav-group{margin-bottom:2px}
+.nav-label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);padding:10px 18px 4px}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:5px 18px;font-size:13px;color:var(--text-2);cursor:pointer;border-left:2px solid transparent;transition:color .1s,background .1s}
+.nav-item:hover{color:var(--text);background:var(--bg-subtle)}
+.nav-item.on{color:var(--accent);border-left-color:var(--accent);background:var(--accent-bg);font-weight:500}
+.nav-item .n{font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.nav-sep{height:1px;background:var(--border);margin:8px 18px}
+
+/* ── Theme toggle ────────────────────────────────────────────── */
+.theme-btn{display:flex;align-items:center;gap:6px;margin:12px 18px 0;padding:5px 8px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text-2);cursor:pointer;transition:border-color .1s}
+.theme-btn:hover{border-color:var(--text-3);color:var(--text)}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.ph{margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.ph h1{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
+.ph p{font-size:14px;color:var(--text-2);max-width:540px;line-height:1.65}
+.ph-meta{margin-top:8px;font-size:12px;color:var(--text-3)}
+
+/* ── Section ─────────────────────────────────────────────────── */
+.section{margin-bottom:40px}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:0}
+
+/* ── Entry ───────────────────────────────────────────────────── */
+.entry{border-bottom:1px solid var(--border-lo)}
+.entry:last-child{border-bottom:none}
+
+.entry-head{display:flex;align-items:baseline;gap:14px;padding:14px 0;cursor:pointer;user-select:none}
+.entry-head:hover .entry-title{color:var(--accent)}
+.entry-code{font-family:ui-monospace,'Cascadia Code','Fira Code',Consolas,monospace;font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;flex-shrink:0;min-width:200px}
+.entry-title{font-size:13.5px;color:var(--text-2);flex:1;line-height:1.4}
+.badge{font-size:10.5px;font-weight:600;letter-spacing:.04em;border-radius:3px;padding:2px 6px;flex-shrink:0;white-space:nowrap}
+.b-fatal{color:var(--fatal-fg);background:var(--fatal-bg)}
+.b-error{color:var(--error-fg);background:var(--error-bg)}
+.b-warn {color:var(--warn-fg); background:var(--warn-bg)}
+.b-info {color:var(--info-fg); background:var(--info-bg)}
+.caret{font-size:10px;color:var(--text-3);flex-shrink:0;transition:transform .15s}
+.entry-head[aria-expanded="true"] .caret{transform:rotate(90deg)}
+
+.entry-body{display:none;padding:0 0 18px}
+.entry-body.open{display:block}
+
+/* ── Displayed message ───────────────────────────────────────── */
+.disp-msg{font-size:13px;font-style:italic;color:var(--text-2);background:var(--bg-subtle);border-left:2px solid var(--border);padding:8px 12px;margin-bottom:16px;line-height:1.55}
+.disp-label{font-style:normal;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);display:block;margin-bottom:3px}
+
+/* ── Chain ───────────────────────────────────────────────────── */
+.chain-wrap{margin-bottom:16px}
+.chain-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:8px}
+.chain{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px}
+.chain-node{display:flex;align-items:center;flex-shrink:0}
+.cnode{font-size:11.5px;padding:5px 11px;white-space:nowrap;background:var(--bg-subtle);border:1px solid var(--border);border-radius:4px}
+.cnode-name{font-weight:600;color:var(--text-2)}
+.cnode-sub{font-size:10px;color:var(--text-3);margin-top:1px}
+.cnode.fg{border-color:var(--node-fragile)}
+.cnode.fg .cnode-name{color:var(--error-fg)}
+.cnode.cr{border-color:var(--node-critical)}
+.cnode.cr .cnode-name{color:var(--fatal-fg)}
+.cnode.gd{border-color:var(--node-good)}
+.cnode.gd .cnode-name{color:var(--accent)}
+.arr{font-size:12px;color:var(--text-3);padding:0 10px;flex-shrink:0}
+
+/* ── Grid ────────────────────────────────────────────────────── */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.cols{grid-template-columns:1fr}}
+
+/* ── Lists ───────────────────────────────────────────────────── */
+.sub-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px}
+.cause-list{list-style:none}
+.cause-list li{font-size:13px;color:var(--text-2);padding:2px 0 2px 14px;position:relative;line-height:1.55}
+.cause-list li::before{content:'·';position:absolute;left:2px;color:var(--text-3)}
+.fix-list{list-style:none;counter-reset:fi}
+.fix-list li{font-size:13px;color:var(--text-2);padding:2px 0 2px 22px;position:relative;counter-increment:fi;line-height:1.55}
+.fix-list li::before{content:counter(fi);position:absolute;left:0;top:3px;font-size:9.5px;font-weight:700;font-family:ui-monospace,monospace;color:var(--bg);background:var(--accent);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* ── Note ────────────────────────────────────────────────────── */
+.note{margin-top:14px;font-size:12.5px;color:var(--text-2);background:var(--bg-subtle);border:1px solid var(--border);border-radius:4px;padding:10px 13px;line-height:1.6}
+.note strong{color:var(--text);font-weight:600}
+
+/* ── Misc ────────────────────────────────────────────────────── */
+.empty{padding:56px 0;text-align:center;font-size:14px;color:var(--text-3)}
+.footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--text-3);line-height:1.7}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-top">
+    <div class="nav-logo">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      Error Reference
+    </div>
+    <input class="search" id="search" type="text" placeholder="Search…" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Browse</div>
+    <div class="nav-item on" data-cat="all" onclick="setcat(this,'all')">All <span class="n" id="n-all"></span></div>
+    <div class="nav-item" data-cat="auth" onclick="setcat(this,'auth')">Auth &amp; Login <span class="n" id="n-auth"></span></div>
+    <div class="nav-item" data-cat="network" onclick="setcat(this,'network')">Network &amp; Access <span class="n" id="n-network"></span></div>
+    <div class="nav-item" data-cat="drm" onclick="setcat(this,'drm')">DRM &amp; Playback <span class="n" id="n-drm"></span></div>
+    <div class="nav-item" data-cat="installer" onclick="setcat(this,'installer')">Installer <span class="n" id="n-installer"></span></div>
+    <div class="nav-item" data-cat="webapi" onclick="setcat(this,'webapi')">Web API <span class="n" id="n-webapi"></span></div>
+  </div>
+
+  <div class="nav-sep"></div>
+
+  <div class="nav-group">
+    <div class="nav-label">Subsystem</div>
+    <div class="nav-item" data-cat="sub-accounts"    onclick="setcat(this,'sub-accounts')">accounts</div>
+    <div class="nav-item" data-cat="sub-auth"        onclick="setcat(this,'sub-auth')">auth</div>
+    <div class="nav-item" data-cat="sub-accesspoint" onclick="setcat(this,'sub-accesspoint')">accesspoint</div>
+    <div class="nav-item" data-cat="sub-session"     onclick="setcat(this,'sub-session')">session</div>
+    <div class="nav-item" data-cat="sub-dlacc"       onclick="setcat(this,'sub-dlacc')">desktop_login_accounts</div>
+  </div>
+
+  <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Dark mode</span>
+  </button>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────── -->
+<main class="body">
+  <div class="ph">
+    <h1>Spotify Desktop Error Reference</h1>
+    <p>Community-sourced reference for error codes in the Spotify desktop client. Each entry documents the cause chain and resolution steps.</p>
+    <div class="ph-meta" id="meta"></div>
+  </div>
+
+  <div class="empty" id="empty" style="display:none">No results.</div>
+  <div id="out"></div>
+
+  <div class="footer">
+    Unofficial community reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.
+  </div>
+</main>
+
+</div>
+<script>
+// ── Data ────────────────────────────────────────────────────────
+// chain node classes: fg=fragile, cr=critical, gd=good, (blank)=neutral
+const E=[
+// ─── auth ──────────────────────────────────────────────────────
+{code:'auth:1',cat:['auth','sub-auth'],sev:'error',
+ title:'Service temporarily unavailable',
+ msg:'Service is temporarily unavailable, please try again later.',
+ chain:[{l:'App start'},{l:'Auth servers',s:'AP cluster',c:'fg'},{l:'TCP connect',s:'port 443',c:'fg'},{l:'Timeout',c:'cr'}],
+ causes:['Authentication servers down or overloaded','Network connectivity loss at startup','Firewall blocking outbound traffic to the AP cluster'],
+ fixes:[['Check Spotify status at downdetector.com'],['Restart device and router'],['Log out and back in'],['Add Spotify to Windows Firewall exceptions: Control Panel → Allow an app']]},
+
+{code:'auth:2',cat:['auth','sub-auth'],sev:'error',
+ title:'Authentication failure',
+ msg:'Service is temporarily unavailable, please try again later. — or — The username or password is incorrect.',
+ chain:[{l:'Login form'},{l:'Auth request',c:'fg'},{l:'Token validation',s:'server-side',c:'fg'},{l:'Rejected',c:'cr'}],
+ causes:['Wrong username or password','Unstable connection causing auth timeout','Spotify server maintenance or outage','Expired cached session token'],
+ fixes:[['Verify credentials — check Caps Lock'],['Reset password at spotify.com/password-reset'],['Check Spotify status page for outages'],['Disable VPN temporarily'],['Update the app: Help → About Spotify']]},
+
+{code:'auth:3',cat:['auth','network','sub-auth'],sev:'error',
+ title:'Firewall or proxy blocking auth',
+ msg:'A firewall may be blocking Spotify. Please update your firewall to allow Spotify.',
+ chain:[{l:'Auth request'},{l:'Firewall',c:'fg'},{l:'Proxy / VPN',c:'fg'},{l:'AP server unreachable',c:'cr'}],
+ causes:['Windows Firewall rule blocking Spotify outbound','VPN routing through a blocked endpoint','Antivirus HTTPS inspection intercepting connections','Spotify entries in the system hosts file'],
+ fixes:[['Add Spotify to Windows Firewall exceptions: Control Panel → Firewall → Allow an app'],['Spotify Settings → Advanced → Proxy → No Proxy'],['Disable VPN to test'],['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', 'for spotify.com entries and remove them']]},
+
+{code:'auth:73',cat:['auth','sub-auth'],sev:'error',
+ title:'Region mismatch or auth blocked',
+ msg:'Error code auth:73 — region or firewall block variant.',
+ chain:[{l:'Auth request'},{l:'GeoIP check',c:'fg'},{l:'Country mismatch',c:'fg'},{l:'Rejected',c:'cr'}],
+ causes:['VPN routing through a country that doesn\'t match your account country','Account country setting outdated after relocation','Firewall blocking port 443'],
+ fixes:[['Disable VPN before launching Spotify'],['Update account country: spotify.com → Profile → Edit Profile → Country'],['Spotify Settings → Advanced → Proxy → No Proxy'],['Add Spotify to firewall exceptions']]},
+
+// ─── accounts ──────────────────────────────────────────────────
+{code:'accounts:4',cat:['auth','network','sub-accounts'],sev:'fatal',
+ title:'No internet connection detected',
+ msg:'No internet connection detected.',
+ note:'<strong>Why Firefox works but Chrome and Spotify fail:</strong> This error fires entirely client-side — no network request is ever made before showing it. The embedded Chromium layer reads <code>navigator.onLine</code> from the Windows Network Location Awareness service (netprofm) via a COM interface. When that service is broken, Chromium reports offline and Spotify shows this error. Firefox probes independently using its own network stack and ignores the Windows NLA result — which is why Firefox streams fine on the same machine while Chrome and Spotify both fail.',
+ chain:[{l:'netprofm',s:'Windows NLA service',c:'cr'},{l:'INetworkListManager',s:'COM',c:'fg'},{l:'Chromium NCN',c:'fg'},{l:'navigator.onLine = false',c:'fg'},{l:'Error shown',c:'cr'}],
+ causes:['netprofm service stopped or its registry keys are corrupted','INetworkListManager::IsConnectedToInternet() returning false despite working internet','VPN client causing Windows to report the adapter as offline','Spotify Offline Mode enabled in settings','Physical disconnection (WiFi / ethernet actually down)'],
+ fixes:[['Open Services (Win+R → services.msc) → find "Network List" and "Network Location Awareness" → set both to Automatic and Start'],['Admin PowerShell:', 'sc start netprofm', 'then', 'sc start nlasvc'],['Run:', 'ipconfig /flushdns'],['Check Spotify Settings → Playback → confirm Offline Mode is off'],['In', 'ncpa.cpl', '→ disable unused virtual network adapters which can confuse the NLA service']]},
+
+{code:'accounts:3',cat:['auth','sub-accounts'],sev:'error',
+ title:'Incorrect username or password',
+ msg:'The username or password is incorrect.',
+ chain:[{l:'Login form'},{l:'accounts service',c:'fg'},{l:'Code 3',c:'cr'}],
+ causes:['Wrong username — try email address instead of display name','Wrong password — check Caps Lock and keyboard layout','Password changed on another device recently'],
+ fixes:[['Verify exact email and password'],['Reset password at spotify.com/password-reset'],['If using a social account (Facebook/Google), use the matching login button rather than a password']]},
+
+{code:'accounts:53–55',cat:['auth','network','sub-accounts'],sev:'error',
+ title:'Proxy blocking Spotify (HTTP 401 / 403 / 407)',
+ msg:'Your internet network is blocking Spotify. Contact your network administrator. (53 = proxy 401 · 54 = proxy 403 · 55 = proxy 407)',
+ chain:[{l:'Auth request'},{l:'Proxy server',c:'cr'},{l:'HTTP 40x',c:'cr'}],
+ causes:['Proxy requires credentials that Spotify doesn\'t have','Corporate NTLM proxy authentication','Network policy explicitly blocking spotify.com'],
+ fixes:[['Spotify Settings → Advanced → Proxy → enter proxy credentials'],['Contact your network administrator for credentials or to whitelist Spotify'],['If direct internet is available: Settings → Proxy → No Proxy']]},
+
+{code:'accounts:103',cat:['auth','network','sub-accounts'],sev:'error',
+ title:'Firewall blocking account validation',
+ msg:'A firewall may be blocking Spotify. (Error code: accounts:103)',
+ chain:[{l:'App launch'},{l:'Firewall',c:'cr'},{l:'accounts API unreachable',c:'cr'}],
+ causes:['Windows Firewall blocking Spotify outbound on port 443','Antivirus HTTPS inspection intercepting connections'],
+ fixes:[['Allow Spotify through Windows Defender Firewall (both Public and Private profiles)'],['Spotify Settings → Advanced → Proxy → No Proxy'],['Disable antivirus temporarily to test, then add Spotify as a permanent exception']]},
+
+{code:'accounts:127',cat:['auth','sub-accounts'],sev:'error',
+ title:'Session terminated by server',
+ msg:'Your session has been terminated.',
+ chain:[{l:'Active session',c:'gd'},{l:'Server terminates',c:'cr'},{l:'Code 127',c:'cr'}],
+ causes:['Password changed on another device — all sessions invalidated','User clicked "Sign out everywhere" in account settings','Suspicious activity detected by Spotify security'],
+ fixes:[['Log in again with current credentials'],['Check email for a Spotify security notification'],['Review sessions at spotify.com/account → Security and privacy']]},
+
+{code:'accounts:402',cat:['auth','sub-accounts'],sev:'fatal',
+ title:'Critical client update required',
+ msg:'Your client is being updated.',
+ chain:[{l:'Login attempt'},{l:'Version check',c:'fg'},{l:'Below minimum',c:'cr'},{l:'Code 402',c:'cr'}],
+ causes:['Client version below Spotify\'s minimum supported version','Critical security patch required by the server'],
+ fixes:[['Wait 1–2 minutes — the auto-updater should apply the patch automatically'],['If stalled: download the latest version from spotify.com/download'],['Run the installer as Administrator'],['Free up disk space if the drive is nearly full (~200 MB needed)']]},
+
+{code:'accounts:403',cat:['auth','sub-accounts'],sev:'fatal',
+ title:'Account disabled',
+ msg:'Account disabled.',
+ chain:[{l:'Login'},{l:'Account status',c:'cr'},{l:'Suspended',c:'cr'}],
+ causes:['Terms of Service violation','Copyright or DMCA action','Fraudulent account activity'],
+ fixes:[['Contact Spotify Support at support.spotify.com'],['Submit an appeal via the Spotify support contact form']]},
+
+{code:'accounts:406',cat:['auth','sub-accounts'],sev:'error',
+ title:'Device not allowed for this account',
+ msg:'Use of this device is not enabled for your account.',
+ chain:[{l:'Login',c:'gd'},{l:'Platform check',c:'fg'},{l:'Code 406',c:'cr'}],
+ causes:['Account restricted to mobile-only platforms','Partner or enterprise plan with platform restrictions'],
+ fixes:[['Contact Spotify Support to request desktop access'],['Check whether your plan restricts desktop usage']]},
+
+{code:'accounts:407',cat:['auth','sub-accounts'],sev:'error',
+ title:'Incomplete account profile',
+ msg:'User profile is not fully updated, please update your profile and log out and back in.',
+ chain:[{l:'Login',c:'gd'},{l:'Profile check',c:'fg'},{l:'Missing fields',c:'cr'}],
+ causes:['Account missing required fields (date of birth, country)','GDPR-required data update pending'],
+ fixes:[['Complete profile at spotify.com/account/profile'],['Log out then back in after saving'],['Try completing the profile in the mobile app first if the website is unresponsive']]},
+
+{code:'accounts:408',cat:['auth','sub-accounts'],sev:'error',
+ title:'Country mismatch',
+ msg:'Your country does not match the one set in your profile.',
+ chain:[{l:'Login',c:'gd'},{l:'GeoIP check',c:'fg'},{l:'Country mismatch',c:'cr'},{l:'Code 408',c:'cr'}],
+ causes:['Relocated without updating Spotify profile country','VPN making you appear in a different country','Free account used outside its registered country'],
+ fixes:[['Disable VPN before logging in'],['Update country: spotify.com → Profile → Edit Profile → Country'],['Log out and back in after updating'],['Upgrade to Premium to reduce geo-restrictions']]},
+
+{code:'accounts:409',cat:['auth','sub-accounts'],sev:'error',
+ title:'Premium users only',
+ msg:'This app is restricted to Premium users only.',
+ chain:[{l:'Login',c:'gd'},{l:'Subscription check',c:'fg'},{l:'Free account',c:'cr'}],
+ causes:['Premium subscription lapsed — payment failed','Free account on a Premium-restricted client build'],
+ fixes:[['Check subscription at spotify.com/account/subscription'],['Update your payment method if the subscription lapsed'],['Log out and back in to refresh subscription status']]},
+
+{code:'accounts:413',cat:['auth','sub-accounts'],sev:'info',
+ title:'Email already registered',
+ msg:'Email is already connected to another user.',
+ chain:[{l:'Signup'},{l:'Email lookup',c:'fg'},{l:'Conflict',c:'cr'}],
+ causes:['Email address already registered to a different Spotify account'],
+ fixes:[['Click "Log in" instead of "Sign up"'],['Use "Forgot password" to recover the existing account']]},
+
+{code:'accounts:417',cat:['auth','sub-accounts'],sev:'error',
+ title:'Facebook credentials revoked',
+ msg:'(No message shown — locale string is absent, a known client bug.)',
+ note:'<strong>Known bug:</strong> accounts:417 has no English locale entry in the Spotify translation files. The error message area renders blank when this code fires.',
+ chain:[{l:'Facebook OAuth'},{l:'FB token',c:'cr'},{l:'Code 417',s:'blank message',c:'cr'}],
+ causes:['Facebook access token revoked','Facebook account unlinked from Spotify'],
+ fixes:[['Log in with Spotify username and password instead of Facebook'],['Re-link Facebook at spotify.com/account/apps'],['Use "Forgot password" to set a standalone password if you have none']]},
+
+{code:'accounts:critical-update-error',cat:['auth','installer','sub-accounts'],sev:'fatal',
+ title:'Automatic update failed',
+ msg:'Please download the latest version from the Spotify website.',
+ chain:[{l:'Spotify updater',c:'fg'},{l:'CDN download',c:'fg'},{l:'Write to disk',c:'fg'},{l:'Fails',c:'cr'}],
+ causes:['Insufficient disk space (~200 MB required)','Antivirus blocking SpotifyUpdate.exe','Permissions preventing write to %LocalAppData%\\Spotify','Previous Spotify process locking files'],
+ fixes:[['Download and install manually from spotify.com/download'],['Run the installer as Administrator'],['Ensure at least 500 MB free disk space'],['End all Spotify processes in Task Manager before re-installing']]},
+
+// ─── session ───────────────────────────────────────────────────
+{code:'session:3',cat:['auth','sub-session'],sev:'error',
+ title:'Stored session token invalid',
+ msg:'The username or password is incorrect.',
+ chain:[{l:'App launch'},{l:'Token resume',c:'fg'},{l:'Token invalid',c:'cr'}],
+ causes:['Saved session token expired or invalidated','Password changed since last login'],
+ fixes:[['Log out completely and log back in'],['Delete cached prefs: close Spotify, delete', '%AppData%\\Spotify\\prefs', ', relaunch']]},
+
+{code:'session:103',cat:['auth','network','sub-session'],sev:'error',
+ title:'Session handshake failed after browser login',
+ msg:'A firewall may be blocking Spotify. (Error code: session:103)',
+ chain:[{l:'Browser login',c:'gd'},{l:'spotify:// redirect',c:'fg'},{l:'Token exchange',c:'fg'},{l:'Fails',c:'cr'}],
+ causes:['Browser-to-app OAuth redirect blocked (spotify:// URI handler)','Corporate network intercepting HTTPS','Wrong default browser causing redirect failure'],
+ fixes:[['Change default browser (Chrome ↔ Firefox) and try again'],['Clear cache and cookies for spotify.com and accounts.spotify.com'],['Change your Spotify password to use direct credential login, bypassing browser OAuth'],['Sign out everywhere: spotify.com/account → Sign out everywhere'],['Reinstall from Microsoft Store instead of the Spotify website, or vice versa']]},
+
+// ─── desktop_login_accounts ────────────────────────────────────
+{code:'desktop_login_accounts:2',cat:['auth','sub-dlacc'],sev:'error',
+ title:'Browser login timed out',
+ msg:'Login timed out, please try again. — or — Signup timed out, please try again.',
+ note:'<strong>Implementation detail:</strong> This is the only Spotify error code where the displayed message overrides the standard error dispatcher — it substitutes a dedicated timeout string based on whether the user was logging in or signing up.',
+ chain:[{l:'Browser opens'},{l:'User must act',c:'fg'},{l:'~5 min timer expires',c:'cr'},{l:'Code 2',c:'cr'}],
+ causes:['User did not complete browser login in time','Browser tab closed before flow finished','Browser blocked the OAuth redirect back to Spotify'],
+ fixes:[['Click "Log in" again and complete it promptly'],['Ensure browser is not in Private/Incognito mode'],['Ensure spotify.com redirects are allowed in your browser'],['Try changing the default browser in Windows Settings']]},
+
+{code:'desktop_login_accounts:4',cat:['auth','sub-dlacc'],sev:'error',
+ title:'OAuth token expired before use',
+ msg:'Your session has expired, please try again.',
+ chain:[{l:'Browser login',c:'gd'},{l:'Token generated',s:'short TTL',c:'fg'},{l:'Clock skew / delay',c:'fg'},{l:'Token expired',c:'cr'}],
+ causes:['Token TTL expired due to slow network delivering it to the app','System clock skew causing premature expiry','User delayed switching back to Spotify after browser finished'],
+ fixes:[['Log in again and switch to Spotify immediately after the browser finishes'],['Sync system clock: Win+R →', 'w32tm /resync', '(run as Administrator)'],['Settings → Time & Language → Date/Time → confirm "Set time automatically" is on']]},
+
+{code:'desktop_login_accounts:5',cat:['auth','network','sub-dlacc'],sev:'error',
+ title:'Firewall blocking OAuth callback',
+ msg:'A firewall may be blocking Spotify.',
+ chain:[{l:'Browser login',c:'gd'},{l:'OAuth callback',c:'fg'},{l:'Firewall blocks it',c:'cr'}],
+ causes:['Windows Firewall blocking the Spotify.exe OAuth redirect','Corporate firewall blocking the spotify:// custom protocol','Third-party desktop widget app (Wallpaper Engine, Rainmeter) interfering with URI handler'],
+ fixes:[['Click the "proxy settings" link in the error and check the proxy configuration'],['Allow Spotify.exe in Windows Firewall — inbound and outbound'],['Try a different network to confirm if this is network-specific'],['Temporarily close Wallpaper Engine, Rainmeter, or similar apps'],['Change your Spotify password to use credential login instead of OAuth']]},
+
+// ─── accesspoint ───────────────────────────────────────────────
+{code:'accesspoint:17',cat:['auth','network','sub-accesspoint'],sev:'error',
+ title:'Access point rejected — region or firewall',
+ msg:'A firewall may be blocking Spotify. (Error code: 17 / accesspoint:17)',
+ note:'<strong>What "accesspoint" means:</strong> This subsystem refers to Spotify\'s AP cluster — the persistent authenticated TCP connection the desktop app maintains for real-time features (playback sync, Spotify Connect). It is separate from the login and streaming servers.',
+ chain:[{l:'Spotify app'},{l:'VPN / proxy',c:'fg'},{l:'AP cluster',c:'fg'},{l:'GeoIP rejection',c:'cr'}],
+ causes:['VPN routing through a foreign IP the AP cluster rejects','Account country doesn\'t match actual connection country','Firewall blocking AP ports (4070, 443)'],
+ fixes:[['Disable VPN — Spotify Settings → Advanced → Proxy → No Proxy'],['Update account country: spotify.com → Profile → Edit Profile → Country'],['Restart Spotify after updating country'],['Add Spotify to Windows Firewall exceptions']]},
+
+{code:'accesspoint:22',cat:['auth','sub-accesspoint'],sev:'error',
+ title:'Client version rejected by access point',
+ msg:'This app is restricted to Premium users only. (Error code: accesspoint:22)',
+ note:'<strong>Misleading message:</strong> Despite saying "Premium users only", this fires for all account tiers when the client version is too old. Spotify clients older than approximately April 2021 are rejected by AP servers.',
+ chain:[{l:'Old client version',c:'cr'},{l:'AP handshake',c:'fg'},{l:'Version rejected',c:'cr'}],
+ causes:['Client too old — AP servers reject pre-2021 versions','Corrupted session state','Accumulated corrupted cache files'],
+ fixes:[['Update Spotify: Help → About Spotify → Update now (resolves this in most cases)'],['Download fresh installer from spotify.com/download or Microsoft Store'],['Log out and back in'],['Clear cache: Settings → Storage → Clear Cache']]},
+
+{code:'accesspoint:31',cat:['network','sub-accesspoint'],sev:'error',
+ title:'No internet — AP connection failed',
+ msg:'No internet connection detected. (Error code: accesspoint:31)',
+ chain:[{l:'AP connect'},{l:'DNS resolve',c:'fg'},{l:'TCP connect',c:'fg'},{l:'Fails',c:'cr'}],
+ causes:['Actual internet connectivity loss','Mobile data APN misconfiguration when using a hotspot','Network blocking the Spotify AP cluster'],
+ fixes:[['Disconnect and reconnect — wait at least 60 seconds'],['Verify internet works in a browser'],['Try a different network (mobile hotspot) to narrow down the cause']]},
+
+{code:'accesspoint:39',cat:['network','sub-accesspoint'],sev:'error',
+ title:'Hosts file or firewall blocking AP',
+ msg:'A firewall may be blocking Spotify. (Error code: accesspoint:39)',
+ chain:[{l:'AP connect'},{l:'Hosts file / firewall',c:'cr'},{l:'Connection denied',c:'cr'}],
+ causes:['Hosts file contains entries blocking Spotify AP domains','Multiple network interfaces confusing IP routing'],
+ fixes:[['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '— remove lines containing "spotify"'],['Win+R →', 'ncpa.cpl', '→ disable inactive or virtual ethernet adapters'],['Run Spotify in Safe Mode with Networking to test whether a startup app is interfering']]},
+
+{code:'accesspoint:50',cat:['network','sub-accesspoint'],sev:'error',
+ title:'Network blocking Spotify at ISP or corporate level',
+ msg:'Your internet network is blocking Spotify. Contact your network administrator.',
+ chain:[{l:'AP connect'},{l:'ISP / corporate gateway',c:'cr'},{l:'Blocked',c:'cr'}],
+ causes:['ISP, corporate, or school network blocking Spotify AP servers at network level'],
+ fixes:[['Contact your network administrator to whitelist *.spotify.com and apresolve.spotify.com'],['Use a mobile hotspot as a workaround'],['A VPN can bypass network-level blocking in this specific case']]},
+
+// ─── DRM ───────────────────────────────────────────────────────
+{code:'EME_NO_SUPPORTED_KEYSYSTEM',cat:['drm'],sev:'fatal',
+ title:'No DRM key system available',
+ msg:'Playback of protected content is not enabled.',
+ note:'<strong>Root cause of the "Firefox works, Chrome fails" pattern:</strong> Firefox probes network state independently and does not depend on Windows NLA. It also has its own DRM stack. Chrome (and Spotify\'s embedded Chromium layer) fully trust the Windows NetworkChangeNotifier for online state and require the system Widevine CDM for DRM. When either is broken, Chrome and Spotify fail together while Firefox continues normally.',
+ chain:[{l:'Spotify JS'},{l:'EME API call',c:'fg'},{l:'Widevine CDM',c:'cr'},{l:'No CDM found',c:'cr'}],
+ causes:['Widevine CDM not installed or disabled in the browser/Chromium layer','DRM playback disabled in browser settings','Ad-blocker extension interfering with Widevine','Old browser without Web EME support','Linux: Widevine binary not present'],
+ fixes:[['Chrome: go to', 'chrome://components/', '→ Widevine Content Decryption Module → Check for update'],['Chrome: go to', 'chrome://settings/content/protectedContent', '→ enable Play protected content'],['Disable all browser extensions and retry'],['For Spotify desktop app: reinstall it — the CEF Widevine bundle is included in the installer'],['Linux:', 'sudo apt install libwidevinecdm0', 'or enable Widevine in your browser settings']]},
+
+{code:'EME_LICENSE_REQUEST_FAILED_WITH_STATUS',cat:['drm','network'],sev:'error',
+ title:'DRM license request returned HTTP error',
+ msg:'License request failed (HTTP status code).',
+ chain:[{l:'Track load'},{l:'DRM license server',c:'fg'},{l:'HTTP 4xx / 5xx',c:'cr'}],
+ causes:['License server temporarily down','Invalid or expired auth token','Network blocking HTTPS to Spotify license servers'],
+ fixes:[['Retry playback after a few seconds'],['Log out and back in to refresh the auth token'],['Check HTTPS to *.spotify.com is not blocked']]},
+
+{code:'DISALLOW_PROTECTED_TRACK_ERROR',cat:['drm'],sev:'fatal',
+ title:'DRM disabled — protected content blocked',
+ msg:'Protected tracks not supported.',
+ chain:[{l:'Play track',s:'DRM protected'},{l:'Platform DRM check',c:'cr'},{l:'DRM disabled',c:'cr'}],
+ causes:['DRM disabled in browser settings','Enterprise browser policy disabling EME'],
+ fixes:[['Chrome: Settings → Content → Protected Content → Allow'],['Check', 'chrome://policy/', 'for policies disabling EME'],['Use the Spotify desktop app (independent DRM stack)']]},
+
+{code:'CAPPING_USER_IS_CAPPED',cat:['drm'],sev:'warn',
+ title:'Free tier monthly listening limit reached',
+ msg:'User is capped.',
+ chain:[{l:'Play request',s:'free tier'},{l:'Monthly quota',c:'fg'},{l:'Limit reached',c:'cr'}],
+ causes:['Free plan listening quota for the month exhausted'],
+ fixes:[['Wait for the monthly limit to reset on the 1st'],['Upgrade to Spotify Premium']]},
+
+{code:'MEDIA_DECODING_ERROR',cat:['drm'],sev:'error',
+ title:'Audio decoding error',
+ msg:'Media decoding error.',
+ chain:[{l:'Audio segment',s:'from CDN'},{l:'SourceBuffer',c:'fg'},{l:'Decoder',c:'fg'},{l:'MEDIA_ERR_DECODE',c:'cr'}],
+ causes:['Corrupted audio segment from CDN','Codec unsupported by platform','Hardware decoder failure','Insufficient system resources'],
+ fixes:[['Skip the track — if only one track fails, it is likely a corrupted CDN segment'],['Restart Spotify to reset the audio pipeline'],['Update graphics and audio drivers'],['Try disabling hardware acceleration in Spotify Settings']]},
+
+// ─── installer ─────────────────────────────────────────────────
+{code:'Installer error 18',cat:['installer'],sev:'error',
+ title:'Files locked by another process',
+ msg:'The installer is unable to install Spotify because the files to write to are in use by another process.',
+ chain:[{l:'NSIS installer'},{l:'Write to disk',s:'%AppData%\\Spotify',c:'fg'},{l:'Files locked',c:'cr'},{l:'Error 18',c:'cr'}],
+ causes:['Previous Spotify processes still running (SpotifyWebHelper, SpotifyUpdate)','Comodo Firewall or iTunes holding a lock on shared files','Steam background services locking files'],
+ fixes:[['Open Task Manager — end all Spotify-related processes'],['Close Steam completely'],['Delete the folder', '%AppData%\\Roaming\\Spotify', 'then retry'],['Clean boot: Win+R →', 'msconfig', '→ Services → Hide Microsoft → Disable All → restart → install'],['Try the Microsoft Store version as an alternative']]},
+
+{code:'Installer error 24',cat:['installer'],sev:'error',
+ title:'Incompatible install environment',
+ msg:'Spotify installation error code 24.',
+ chain:[{l:'NSIS installer'},{l:'Environment check',c:'fg'},{l:'Conflict found',c:'cr'}],
+ causes:['Conflicting software running during installation','Malware preventing installer from writing files','Corrupted installer download'],
+ fixes:[['Close all other applications before installing'],['Run a malware scan'],['Download a fresh installer from spotify.com/download (do not reuse a cached .exe)'],['Try installing in Safe Mode with Networking']]},
+
+{code:'Error 30',cat:['network','installer'],sev:'error',
+ title:'Proxy or firewall blocking connections',
+ msg:'A firewall may be blocking Spotify.',
+ chain:[{l:'Network request'},{l:'System proxy',c:'fg'},{l:'Proxy / VPN',c:'cr'}],
+ causes:['Proxy configured in Windows system settings','VPN routing Spotify traffic incorrectly','Hosts file containing Spotify-blocking proxy redirect entries'],
+ fixes:[['Spotify: Settings → Advanced → Proxy → No Proxy'],['Windows: Settings → Network & Internet → Proxy → turn off "Use a proxy server"'],['Disable VPN or configure split-tunnel to exclude Spotify'],['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '— remove Spotify-related entries']]},
+
+// ─── Web API ────────────────────────────────────────────────────
+{code:'HTTP 401 — invalid_client',cat:['webapi'],sev:'error',
+ title:'Wrong app credentials',
+ msg:'{"error": "invalid_client", "error_description": "Invalid client secret"}',
+ chain:[{l:'Developer app'},{l:'OAuth server',c:'fg'},{l:'Wrong secret',c:'cr'}],
+ causes:['Wrong client_id or client_secret in your code','Using credentials from the wrong Dashboard app','Secret regenerated but old value still in use'],
+ fixes:[['Verify credentials in developer.spotify.com/dashboard'],['If the secret was regenerated, update it in your code or environment variables']]},
+
+{code:'HTTP 403 — PREMIUM_REQUIRED',cat:['webapi'],sev:'error',
+ title:'Player control requires Premium',
+ msg:'Player command failed: Premium required',
+ chain:[{l:'POST /v1/me/player'},{l:'Subscription check',c:'fg'},{l:'Free account',c:'cr'}],
+ causes:['User does not have Spotify Premium','Using Client Credentials OAuth flow for player endpoints (user auth flow required)'],
+ fixes:[['Ensure the user has Spotify Premium'],['Use Authorization Code Flow or PKCE — not Client Credentials — for all /me/player/* endpoints']]},
+
+{code:'HTTP 404 — NO_ACTIVE_DEVICE',cat:['webapi'],sev:'error',
+ title:'No active Spotify device',
+ msg:'Player command failed: No active device found',
+ chain:[{l:'Player command'},{l:'Device lookup',c:'fg'},{l:'No device active',c:'cr'}],
+ causes:['No Spotify client open on user account','Stale cached device ID — it changes each session','Spotify left in fully idle state'],
+ fixes:[['Ensure a Spotify client is open before making player API calls'],['Call GET /v1/me/player/devices to refresh the list before issuing commands'],['Pass an explicit device_id in the request body']]},
+
+{code:'HTTP 403 — RESTRICTION_VIOLATED',cat:['webapi'],sev:'error',
+ title:'Playback restriction violated',
+ msg:'Player command failed: Restriction violated',
+ chain:[{l:'Player command'},{l:'Context disallows',c:'fg'},{l:'HTTP 403',c:'cr'}],
+ causes:['Skipping in a context that disallows it (radio, free tier)','Attempting to control playback when not the active controller'],
+ fixes:[['Check the disallows object in GET /v1/me/player before issuing the command'],['Ensure Premium for full playback control API access']]},
+
+{code:'HTTP 429 — Too Many Requests',cat:['webapi'],sev:'warn',
+ title:'Rate limit exceeded',
+ msg:'HTTP 429 Too Many Requests — see Retry-After header.',
+ chain:[{l:'Burst of requests',c:'cr'},{l:'Spotify rate limiter',c:'fg'},{l:'429 + Retry-After',c:'cr'}],
+ causes:['Sending too many requests per unit time','Polling-based architecture making rapid repeated calls'],
+ fixes:[['Implement exponential backoff using the Retry-After value in the response header'],['Cache API responses to reduce repeated identical requests'],['Use Spotify Connect state events instead of polling /v1/me/player']]},
+];
+
+// ── Render ──────────────────────────────────────────────────────
+let CAT='all';
+const SECTIONS=[
+  {id:'auth',     label:'Authentication & Login'},
+  {id:'network',  label:'Network & Access Points'},
+  {id:'drm',      label:'DRM & Playback'},
+  {id:'installer',label:'Installer'},
+  {id:'webapi',   label:'Web API'},
+];
+
+function chainHtml(chain){
+  if(!chain||!chain.length)return'';
+  return`<div class="chain-wrap"><div class="chain-label">Cause chain</div><div class="chain">${
+    chain.map((n,i)=>`<div class="chain-node"><div class="cnode${n.c?' '+n.c:''}"><div class="cnode-name">${n.l}</div>${n.s?`<div class="cnode-sub">${n.s}</div>`:''}</div>${i<chain.length-1?'<span class="arr">→</span>':''}</div>`).join('')
+  }</div></div>`;
+}
+
+function eHtml(e){
+  const bc={fatal:'b-fatal',error:'b-error',warn:'b-warn',info:'b-info'}[e.sev]||'b-info';
+  const causes=(e.causes||[]).map(c=>`<li>${c}</li>`).join('');
+  const fixes=(e.fixes||[]).map(f=>{
+    const parts=Array.isArray(f)?f:[f];
+    const txt=parts.map(p=>(/[\\]/.test(p)||(/^[a-z_\/]+$/i.test(p)&&p.length>3&&p.includes('\\')))?`<code>${p}</code>`:p).join(' ');
+    return`<li>${txt}</li>`;
+  }).join('');
+  return`<div class="entry" data-cat="${(e.cat||[]).join(' ')}">
+  <div class="entry-head" onclick="tog(this)" aria-expanded="false">
+    <span class="entry-code">${e.code}</span>
+    <span class="entry-title">${e.title}</span>
+    <span class="badge ${bc}">${e.sev}</span>
+    <span class="caret">▶</span>
+  </div>
+  <div class="entry-body">
+    ${e.msg?`<div class="disp-msg"><span class="disp-label">Displayed message</span>${e.msg}</div>`:''}
+    ${chainHtml(e.chain)}
+    <div class="cols">
+      <div><div class="sub-label">Causes</div><ul class="cause-list">${causes}</ul></div>
+      <div><div class="sub-label">Resolution</div><ul class="fix-list">${fixes}</ul></div>
+    </div>
+    ${e.note?`<div class="note">${e.note}</div>`:''}
+  </div>
+</div>`;
+}
+
+function tog(h){
+  const open=h.getAttribute('aria-expanded')==='true';
+  h.setAttribute('aria-expanded',!open);
+  h.nextElementSibling.classList.toggle('open',!open);
+}
+
+function render(){
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  let list=E;
+  if(CAT!=='all')list=list.filter(e=>(e.cat||[]).includes(CAT));
+  if(q){
+    const terms=q.split(/\s+/);
+    list=list.filter(e=>{
+      const hay=[e.code,e.title,e.msg||'',(e.causes||[]).join(' '),(e.fixes||[]).map(f=>Array.isArray(f)?f.join(' '):f).join(' ')].join(' ').toLowerCase();
+      return terms.every(t=>hay.includes(t));
+    });
+  }
+
+  // counts
+  ['all','auth','network','drm','installer','webapi'].forEach(c=>{
+    const n=document.getElementById('n-'+c);
+    if(n)n.textContent=c==='all'?list.length:list.filter(e=>(e.cat||[]).includes(c)).length;
+  });
+  document.getElementById('meta').textContent=
+    list.length===E.length?`${E.length} errors documented`:`${list.length} of ${E.length} shown`;
+
+  const out=document.getElementById('out');
+  const empty=document.getElementById('empty');
+  if(!list.length){out.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+
+  if(CAT!=='all'){out.innerHTML=`<div class="section">${list.map(eHtml).join('')}</div>`;return;}
+
+  const seen=new Set();
+  let html='';
+  SECTIONS.forEach(({id,label})=>{
+    const sub=list.filter(e=>(e.cat||[]).includes(id)&&!seen.has(e.code));
+    if(!sub.length)return;
+    sub.forEach(e=>seen.add(e.code));
+    html+=`<div class="section"><div class="section-title">${label}</div>${sub.map(eHtml).join('')}</div>`;
+  });
+  const rest=list.filter(e=>!seen.has(e.code));
+  if(rest.length)html+=`<div class="section">${rest.map(eHtml).join('')}</div>`;
+  out.innerHTML=html;
+}
+
+function setcat(el,cat){
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  CAT=cat;render();
+}
+
+// ── Theme ────────────────────────────────────────────────────────
+const MOON='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+const SUN='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+
+function toggleTheme(){
+  const html=document.documentElement;
+  const dark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('theme-icon').innerHTML=dark?MOON:SUN;
+  document.getElementById('theme-label').textContent=dark?'Dark mode':'Light mode';
+}
+
+document.getElementById('search').addEventListener('input',render);
+render();
+</script>
+</body>
+</html>
