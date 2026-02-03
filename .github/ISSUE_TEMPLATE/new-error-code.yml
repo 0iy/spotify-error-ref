@@ -1,0 +1,69 @@
+name: New error code
+description: Submit a Spotify desktop client error code that isn't documented yet
+labels: ["new-entry"]
+body:
+  - type: input
+    id: code
+    attributes:
+      label: Error code
+      description: The exact code string shown by Spotify (e.g. accounts:4, accesspoint:22)
+      placeholder: "subsystem:N"
+    validations:
+      required: true
+
+  - type: input
+    id: message
+    attributes:
+      label: Displayed message
+      description: The exact text Spotify shows the user when this error occurs
+      placeholder: "No internet connection detected."
+    validations:
+      required: false
+
+  - type: textarea
+    id: causes
+    attributes:
+      label: Causes
+      description: What conditions trigger this error? One per line.
+      placeholder: |
+        netprofm service stopped
+        VPN causing Windows to report offline
+    validations:
+      required: false
+
+  - type: textarea
+    id: fixes
+    attributes:
+      label: Resolution steps
+      description: Steps that fix the issue. Include exact commands or paths where relevant.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - fatal (blocks login / playback entirely)
+        - error (failure with a clear cause)
+        - warn (degraded experience)
+        - info (informational)
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / Spotify version
+      description: Where was this reproduced?
+      placeholder: "Windows 11 22H2 / Spotify 1.2.x"
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Anything else useful — edge cases, related errors, links to community threads.
+    validations:
+      required: false
