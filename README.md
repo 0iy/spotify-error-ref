@@ -9,6 +9,8 @@ community reference for spotify desktop client error codes. documents the cause 
 
 **[→ open the reference](https://0iy.github.io/spotify-error-ref)**
 
+windows only for now — everything is verified on windows. haven't hit these on macOS myself, but open an issue if you do.
+
 ---
 
 ## what's in here
