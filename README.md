@@ -37,6 +37,15 @@ open `index.html` locally, or use the live github pages site.
 
 no build step. no dependencies. single file.
 
+## for llms / agents
+
+the page renders client-side, so plain-text copies are published for machine reading:
+
+- [`llms.txt`](https://0iy.github.io/spotify-error-ref/llms.txt) — index of every documented code ([spec](https://llmstxt.org))
+- [`llms-full.txt`](https://0iy.github.io/spotify-error-ref/llms-full.txt) — full reference: message, cause chain, causes and fixes for all codes
+
+regenerate them after editing the data with `node tools/gen-llms.js`.
+
 ## contributing
 
 contributions welcome — especially corrections, missing error codes, or fixes verified on specific OS versions.

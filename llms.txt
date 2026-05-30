@@ -1,0 +1,53 @@
+# Spotify Desktop Error Reference
+
+> Community reference for error codes in the Spotify desktop client (Windows). Each error code is documented with its displayed message, the chain of components that leads to it, the conditions that trigger it, and step-by-step resolution.
+
+The website renders its content with JavaScript. The plain-text files linked below contain the complete reference for machine reading. Not affiliated with or endorsed by Spotify AB.
+
+## Docs
+- [Full reference — all codes, causes, fixes](https://0iy.github.io/spotify-error-ref/llms-full.txt): complete plain-text dump of every documented error code
+- [Website](https://0iy.github.io/spotify-error-ref/): interactive reference with search and filtering
+- [Source repository](https://github.com/0iy/spotify-error-ref): contribute codes or corrections
+
+## Error codes
+- auth:1 — Service temporarily unavailable (error)
+- auth:2 — Authentication failure (error)
+- auth:3 — Firewall or proxy blocking auth (error)
+- auth:73 — Region mismatch or auth blocked (error)
+- accounts:4 — No internet connection detected (fatal)
+- accounts:3 — Incorrect username or password (error)
+- accounts:53–55 — Proxy blocking Spotify (HTTP 401 / 403 / 407) (error)
+- accounts:103 — Firewall blocking account validation (error)
+- accounts:127 — Session terminated by server (error)
+- accounts:402 — Critical client update required (fatal)
+- accounts:403 — Account disabled (fatal)
+- accounts:406 — Device not allowed for this account (error)
+- accounts:407 — Incomplete account profile (error)
+- accounts:408 — Country mismatch (error)
+- accounts:409 — Premium users only (error)
+- accounts:413 — Email already registered (info)
+- accounts:417 — Facebook credentials revoked (error)
+- accounts:critical-update-error — Automatic update failed (fatal)
+- session:3 — Stored session token invalid (error)
+- session:103 — Session handshake failed after browser login (error)
+- desktop_login_accounts:2 — Browser login timed out (error)
+- desktop_login_accounts:4 — OAuth token expired before use (error)
+- desktop_login_accounts:5 — Firewall blocking OAuth callback (error)
+- accesspoint:17 — Access point rejected — region or firewall (error)
+- accesspoint:22 — Client version rejected by access point (error)
+- accesspoint:31 — No internet — AP connection failed (error)
+- accesspoint:39 — Hosts file or firewall blocking AP (error)
+- accesspoint:50 — Network blocking Spotify at ISP or corporate level (error)
+- EME_LICENSE_REQUEST_FAILED_WITH_STATUS — DRM license request returned HTTP error (error)
+- Error 30 — Proxy or firewall blocking connections (error)
+- EME_NO_SUPPORTED_KEYSYSTEM — No DRM key system available (fatal)
+- DISALLOW_PROTECTED_TRACK_ERROR — DRM disabled — protected content blocked (fatal)
+- CAPPING_USER_IS_CAPPED — Free tier monthly listening limit reached (warn)
+- MEDIA_DECODING_ERROR — Audio decoding error (error)
+- Installer error 18 — Files locked by another process (error)
+- Installer error 24 — Incompatible install environment (error)
+- HTTP 401 — invalid_client — Wrong app credentials (error)
+- HTTP 403 — PREMIUM_REQUIRED — Player control requires Premium (error)
+- HTTP 404 — NO_ACTIVE_DEVICE — No active Spotify device (error)
+- HTTP 403 — RESTRICTION_VIOLATED — Playback restriction violated (error)
+- HTTP 429 — Too Many Requests — Rate limit exceeded (warn)

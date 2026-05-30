@@ -1,0 +1,562 @@
+# Spotify Desktop Error Reference — Full Reference
+
+Source: https://0iy.github.io/spotify-error-ref/
+Repository: https://github.com/0iy/spotify-error-ref
+Scope: Windows desktop client. 41 error codes documented.
+Unofficial community reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.
+
+
+## Authentication & Login
+
+### auth:1 — Service temporarily unavailable
+Severity: error
+Displayed message: "Service is temporarily unavailable, please try again later."
+Cause chain: App start -> Auth servers (AP cluster) -> TCP connect (port 443) -> Timeout
+Causes:
+  - Authentication servers down or overloaded
+  - Network connectivity loss at startup
+  - Firewall blocking outbound traffic to the AP cluster
+Resolution:
+  1. Check Spotify status at downdetector.com
+  2. Restart device and router
+  3. Log out and back in
+  4. Add Spotify to Windows Firewall exceptions: Control Panel → Allow an app
+
+### auth:2 — Authentication failure
+Severity: error
+Displayed message: "Service is temporarily unavailable, please try again later. — or — The username or password is incorrect."
+Cause chain: Login form -> Auth request -> Token validation (server-side) -> Rejected
+Causes:
+  - Wrong username or password
+  - Unstable connection causing auth timeout
+  - Spotify server maintenance or outage
+  - Expired cached session token
+Resolution:
+  1. Verify credentials — check Caps Lock
+  2. Reset password at spotify.com/password-reset
+  3. Check Spotify status page for outages
+  4. Disable VPN temporarily
+  5. Update the app: Help → About Spotify
+
+### auth:3 — Firewall or proxy blocking auth
+Severity: error
+Displayed message: "A firewall may be blocking Spotify. Please update your firewall to allow Spotify."
+Cause chain: Auth request -> Firewall -> Proxy / VPN -> AP server unreachable
+Causes:
+  - Windows Firewall rule blocking Spotify outbound
+  - VPN routing through a blocked endpoint
+  - Antivirus HTTPS inspection intercepting connections
+  - Spotify entries in the system hosts file
+Resolution:
+  1. Add Spotify to Windows Firewall exceptions: Control Panel → Firewall → Allow an app
+  2. Spotify Settings → Advanced → Proxy → No Proxy
+  3. Disable VPN to test
+  4. Check C:\Windows\System32\drivers\etc\hosts for spotify.com entries and remove them
+
+### auth:73 — Region mismatch or auth blocked
+Severity: error
+Displayed message: "Error code auth:73 — region or firewall block variant."
+Cause chain: Auth request -> GeoIP check -> Country mismatch -> Rejected
+Causes:
+  - VPN routing through a country that doesn't match your account country
+  - Account country setting outdated after relocation
+  - Firewall blocking port 443
+Resolution:
+  1. Disable VPN before launching Spotify
+  2. Update account country: spotify.com → Profile → Edit Profile → Country
+  3. Spotify Settings → Advanced → Proxy → No Proxy
+  4. Add Spotify to firewall exceptions
+
+### accounts:4 — No internet connection detected
+Severity: fatal
+Displayed message: "No internet connection detected."
+Cause chain: netprofm (Windows NLA service) -> INetworkListManager (COM) -> Chromium NCN -> navigator.onLine = false -> Error shown
+Causes:
+  - netprofm service stopped or its registry keys are corrupted
+  - INetworkListManager::IsConnectedToInternet() returning false despite working internet
+  - VPN client causing Windows to report the adapter as offline
+  - Spotify Offline Mode enabled in settings
+  - Physical disconnection (WiFi / ethernet actually down)
+Resolution:
+  1. Open Services (Win+R → services.msc) → find "Network List" and "Network Location Awareness" → set both to Automatic and Start
+  2. Admin PowerShell: sc start netprofm then sc start nlasvc
+  3. Run: ipconfig /flushdns
+  4. Check Spotify Settings → Playback → confirm Offline Mode is off
+  5. In ncpa.cpl → disable unused virtual network adapters which can confuse the NLA service
+Note: Why Firefox works but Chrome and Spotify fail: This error fires entirely client-side — no network request is ever made before showing it. The embedded Chromium layer reads navigator.onLine from the Windows Network Location Awareness service (netprofm) via a COM interface. When that service is broken, Chromium reports offline and Spotify shows this error. Firefox probes independently using its own network stack and ignores the Windows NLA result — which is why Firefox streams fine on the same machine while Chrome and Spotify both fail.
+
+### accounts:3 — Incorrect username or password
+Severity: error
+Displayed message: "The username or password is incorrect."
+Cause chain: Login form -> accounts service -> Code 3
+Causes:
+  - Wrong username — try email address instead of display name
+  - Wrong password — check Caps Lock and keyboard layout
+  - Password changed on another device recently
+Resolution:
+  1. Verify exact email and password
+  2. Reset password at spotify.com/password-reset
+  3. If using a social account (Facebook/Google), use the matching login button rather than a password
+
+### accounts:53–55 — Proxy blocking Spotify (HTTP 401 / 403 / 407)
+Severity: error
+Displayed message: "Your internet network is blocking Spotify. Contact your network administrator. (53 = proxy 401 · 54 = proxy 403 · 55 = proxy 407)"
+Cause chain: Auth request -> Proxy server -> HTTP 40x
+Causes:
+  - Proxy requires credentials that Spotify doesn't have
+  - Corporate NTLM proxy authentication
+  - Network policy explicitly blocking spotify.com
+Resolution:
+  1. Spotify Settings → Advanced → Proxy → enter proxy credentials
+  2. Contact your network administrator for credentials or to whitelist Spotify
+  3. If direct internet is available: Settings → Proxy → No Proxy
+
+### accounts:103 — Firewall blocking account validation
+Severity: error
+Displayed message: "A firewall may be blocking Spotify. (Error code: accounts:103)"
+Cause chain: App launch -> Firewall -> accounts API unreachable
+Causes:
+  - Windows Firewall blocking Spotify outbound on port 443
+  - Antivirus HTTPS inspection intercepting connections
+Resolution:
+  1. Allow Spotify through Windows Defender Firewall (both Public and Private profiles)
+  2. Spotify Settings → Advanced → Proxy → No Proxy
+  3. Disable antivirus temporarily to test, then add Spotify as a permanent exception
+
+### accounts:127 — Session terminated by server
+Severity: error
+Displayed message: "Your session has been terminated."
+Cause chain: Active session -> Server terminates -> Code 127
+Causes:
+  - Password changed on another device — all sessions invalidated
+  - User clicked "Sign out everywhere" in account settings
+  - Suspicious activity detected by Spotify security
+Resolution:
+  1. Log in again with current credentials
+  2. Check email for a Spotify security notification
+  3. Review sessions at spotify.com/account → Security and privacy
+
+### accounts:402 — Critical client update required
+Severity: fatal
+Displayed message: "Your client is being updated."
+Cause chain: Login attempt -> Version check -> Below minimum -> Code 402
+Causes:
+  - Client version below Spotify's minimum supported version
+  - Critical security patch required by the server
+Resolution:
+  1. Wait 1–2 minutes — the auto-updater should apply the patch automatically
+  2. If stalled: download the latest version from spotify.com/download
+  3. Run the installer as Administrator
+  4. Free up disk space if the drive is nearly full (~200 MB needed)
+
+### accounts:403 — Account disabled
+Severity: fatal
+Displayed message: "Account disabled."
+Cause chain: Login -> Account status -> Suspended
+Causes:
+  - Terms of Service violation
+  - Copyright or DMCA action
+  - Fraudulent account activity
+Resolution:
+  1. Contact Spotify Support at support.spotify.com
+  2. Submit an appeal via the Spotify support contact form
+
+### accounts:406 — Device not allowed for this account
+Severity: error
+Displayed message: "Use of this device is not enabled for your account."
+Cause chain: Login -> Platform check -> Code 406
+Causes:
+  - Account restricted to mobile-only platforms
+  - Partner or enterprise plan with platform restrictions
+Resolution:
+  1. Contact Spotify Support to request desktop access
+  2. Check whether your plan restricts desktop usage
+
+### accounts:407 — Incomplete account profile
+Severity: error
+Displayed message: "User profile is not fully updated, please update your profile and log out and back in."
+Cause chain: Login -> Profile check -> Missing fields
+Causes:
+  - Account missing required fields (date of birth, country)
+  - GDPR-required data update pending
+Resolution:
+  1. Complete profile at spotify.com/account/profile
+  2. Log out then back in after saving
+  3. Try completing the profile in the mobile app first if the website is unresponsive
+
+### accounts:408 — Country mismatch
+Severity: error
+Displayed message: "Your country does not match the one set in your profile."
+Cause chain: Login -> GeoIP check -> Country mismatch -> Code 408
+Causes:
+  - Relocated without updating Spotify profile country
+  - VPN making you appear in a different country
+  - Free account used outside its registered country
+Resolution:
+  1. Disable VPN before logging in
+  2. Update country: spotify.com → Profile → Edit Profile → Country
+  3. Log out and back in after updating
+  4. Upgrade to Premium to reduce geo-restrictions
+
+### accounts:409 — Premium users only
+Severity: error
+Displayed message: "This app is restricted to Premium users only."
+Cause chain: Login -> Subscription check -> Free account
+Causes:
+  - Premium subscription lapsed — payment failed
+  - Free account on a Premium-restricted client build
+Resolution:
+  1. Check subscription at spotify.com/account/subscription
+  2. Update your payment method if the subscription lapsed
+  3. Log out and back in to refresh subscription status
+
+### accounts:413 — Email already registered
+Severity: info
+Displayed message: "Email is already connected to another user."
+Cause chain: Signup -> Email lookup -> Conflict
+Causes:
+  - Email address already registered to a different Spotify account
+Resolution:
+  1. Click "Log in" instead of "Sign up"
+  2. Use "Forgot password" to recover the existing account
+
+### accounts:417 — Facebook credentials revoked
+Severity: error
+Displayed message: "(No message shown — locale string is absent, a known client bug.)"
+Cause chain: Facebook OAuth -> FB token -> Code 417 (blank message)
+Causes:
+  - Facebook access token revoked
+  - Facebook account unlinked from Spotify
+Resolution:
+  1. Log in with Spotify username and password instead of Facebook
+  2. Re-link Facebook at spotify.com/account/apps
+  3. Use "Forgot password" to set a standalone password if you have none
+Note: Known bug: accounts:417 has no English locale entry in the Spotify translation files. The error message area renders blank when this code fires.
+
+### accounts:critical-update-error — Automatic update failed
+Severity: fatal
+Displayed message: "Please download the latest version from the Spotify website."
+Cause chain: Spotify updater -> CDN download -> Write to disk -> Fails
+Causes:
+  - Insufficient disk space (~200 MB required)
+  - Antivirus blocking SpotifyUpdate.exe
+  - Permissions preventing write to %LocalAppData%\Spotify
+  - Previous Spotify process locking files
+Resolution:
+  1. Download and install manually from spotify.com/download
+  2. Run the installer as Administrator
+  3. Ensure at least 500 MB free disk space
+  4. End all Spotify processes in Task Manager before re-installing
+
+### session:3 — Stored session token invalid
+Severity: error
+Displayed message: "The username or password is incorrect."
+Cause chain: App launch -> Token resume -> Token invalid
+Causes:
+  - Saved session token expired or invalidated
+  - Password changed since last login
+Resolution:
+  1. Log out completely and log back in
+  2. Delete cached prefs: close Spotify, delete %AppData%\Spotify\prefs , relaunch
+
+### session:103 — Session handshake failed after browser login
+Severity: error
+Displayed message: "A firewall may be blocking Spotify. (Error code: session:103)"
+Cause chain: Browser login -> spotify:// redirect -> Token exchange -> Fails
+Causes:
+  - Browser-to-app OAuth redirect blocked (spotify:// URI handler)
+  - Corporate network intercepting HTTPS
+  - Wrong default browser causing redirect failure
+Resolution:
+  1. Change default browser (Chrome ↔ Firefox) and try again
+  2. Clear cache and cookies for spotify.com and accounts.spotify.com
+  3. Change your Spotify password to use direct credential login, bypassing browser OAuth
+  4. Sign out everywhere: spotify.com/account → Sign out everywhere
+  5. Reinstall from Microsoft Store instead of the Spotify website, or vice versa
+
+### desktop_login_accounts:2 — Browser login timed out
+Severity: error
+Displayed message: "Login timed out, please try again. — or — Signup timed out, please try again."
+Cause chain: Browser opens -> User must act -> ~5 min timer expires -> Code 2
+Causes:
+  - User did not complete browser login in time
+  - Browser tab closed before flow finished
+  - Browser blocked the OAuth redirect back to Spotify
+Resolution:
+  1. Click "Log in" again and complete it promptly
+  2. Ensure browser is not in Private/Incognito mode
+  3. Ensure spotify.com redirects are allowed in your browser
+  4. Try changing the default browser in Windows Settings
+Note: Implementation detail: This is the only Spotify error code where the displayed message overrides the standard error dispatcher — it substitutes a dedicated timeout string based on whether the user was logging in or signing up.
+
+### desktop_login_accounts:4 — OAuth token expired before use
+Severity: error
+Displayed message: "Your session has expired, please try again."
+Cause chain: Browser login -> Token generated (short TTL) -> Clock skew / delay -> Token expired
+Causes:
+  - Token TTL expired due to slow network delivering it to the app
+  - System clock skew causing premature expiry
+  - User delayed switching back to Spotify after browser finished
+Resolution:
+  1. Log in again and switch to Spotify immediately after the browser finishes
+  2. Sync system clock: Win+R → w32tm /resync (run as Administrator)
+  3. Settings → Time & Language → Date/Time → confirm "Set time automatically" is on
+
+### desktop_login_accounts:5 — Firewall blocking OAuth callback
+Severity: error
+Displayed message: "A firewall may be blocking Spotify."
+Cause chain: Browser login -> OAuth callback -> Firewall blocks it
+Causes:
+  - Windows Firewall blocking the Spotify.exe OAuth redirect
+  - Corporate firewall blocking the spotify:// custom protocol
+  - Third-party desktop widget app (Wallpaper Engine, Rainmeter) interfering with URI handler
+Resolution:
+  1. Click the "proxy settings" link in the error and check the proxy configuration
+  2. Allow Spotify.exe in Windows Firewall — inbound and outbound
+  3. Try a different network to confirm if this is network-specific
+  4. Temporarily close Wallpaper Engine, Rainmeter, or similar apps
+  5. Change your Spotify password to use credential login instead of OAuth
+
+### accesspoint:17 — Access point rejected — region or firewall
+Severity: error
+Displayed message: "A firewall may be blocking Spotify. (Error code: 17 / accesspoint:17)"
+Cause chain: Spotify app -> VPN / proxy -> AP cluster -> GeoIP rejection
+Causes:
+  - VPN routing through a foreign IP the AP cluster rejects
+  - Account country doesn't match actual connection country
+  - Firewall blocking AP ports (4070, 443)
+Resolution:
+  1. Disable VPN — Spotify Settings → Advanced → Proxy → No Proxy
+  2. Update account country: spotify.com → Profile → Edit Profile → Country
+  3. Restart Spotify after updating country
+  4. Add Spotify to Windows Firewall exceptions
+Note: What "accesspoint" means: This subsystem refers to Spotify's AP cluster — the persistent authenticated TCP connection the desktop app maintains for real-time features (playback sync, Spotify Connect). It is separate from the login and streaming servers.
+
+### accesspoint:22 — Client version rejected by access point
+Severity: error
+Displayed message: "This app is restricted to Premium users only. (Error code: accesspoint:22)"
+Cause chain: Old client version -> AP handshake -> Version rejected
+Causes:
+  - Client too old — AP servers reject pre-2021 versions
+  - Corrupted session state
+  - Accumulated corrupted cache files
+Resolution:
+  1. Update Spotify: Help → About Spotify → Update now (resolves this in most cases)
+  2. Download fresh installer from spotify.com/download or Microsoft Store
+  3. Log out and back in
+  4. Clear cache: Settings → Storage → Clear Cache
+Note: Misleading message: Despite saying "Premium users only", this fires for all account tiers when the client version is too old. Spotify clients older than approximately April 2021 are rejected by AP servers.
+
+## Network & Access
+
+### accesspoint:31 — No internet — AP connection failed
+Severity: error
+Displayed message: "No internet connection detected. (Error code: accesspoint:31)"
+Cause chain: AP connect -> DNS resolve -> TCP connect -> Fails
+Causes:
+  - Actual internet connectivity loss
+  - Mobile data APN misconfiguration when using a hotspot
+  - Network blocking the Spotify AP cluster
+Resolution:
+  1. Disconnect and reconnect — wait at least 60 seconds
+  2. Verify internet works in a browser
+  3. Try a different network (mobile hotspot) to narrow down the cause
+
+### accesspoint:39 — Hosts file or firewall blocking AP
+Severity: error
+Displayed message: "A firewall may be blocking Spotify. (Error code: accesspoint:39)"
+Cause chain: AP connect -> Hosts file / firewall -> Connection denied
+Causes:
+  - Hosts file contains entries blocking Spotify AP domains
+  - Multiple network interfaces confusing IP routing
+Resolution:
+  1. Check C:\Windows\System32\drivers\etc\hosts — remove lines containing "spotify"
+  2. Win+R → ncpa.cpl → disable inactive or virtual ethernet adapters
+  3. Run Spotify in Safe Mode with Networking to test whether a startup app is interfering
+
+### accesspoint:50 — Network blocking Spotify at ISP or corporate level
+Severity: error
+Displayed message: "Your internet network is blocking Spotify. Contact your network administrator."
+Cause chain: AP connect -> ISP / corporate gateway -> Blocked
+Causes:
+  - ISP, corporate, or school network blocking Spotify AP servers at network level
+Resolution:
+  1. Contact your network administrator to whitelist *.spotify.com and apresolve.spotify.com
+  2. Use a mobile hotspot as a workaround
+  3. A VPN can bypass network-level blocking in this specific case
+
+### EME_LICENSE_REQUEST_FAILED_WITH_STATUS — DRM license request returned HTTP error
+Severity: error
+Displayed message: "License request failed (HTTP status code)."
+Cause chain: Track load -> DRM license server -> HTTP 4xx / 5xx
+Causes:
+  - License server temporarily down
+  - Invalid or expired auth token
+  - Network blocking HTTPS to Spotify license servers
+Resolution:
+  1. Retry playback after a few seconds
+  2. Log out and back in to refresh the auth token
+  3. Check HTTPS to *.spotify.com is not blocked
+
+### Error 30 — Proxy or firewall blocking connections
+Severity: error
+Displayed message: "A firewall may be blocking Spotify."
+Cause chain: Network request -> System proxy -> Proxy / VPN
+Causes:
+  - Proxy configured in Windows system settings
+  - VPN routing Spotify traffic incorrectly
+  - Hosts file containing Spotify-blocking proxy redirect entries
+Resolution:
+  1. Spotify: Settings → Advanced → Proxy → No Proxy
+  2. Windows: Settings → Network & Internet → Proxy → turn off "Use a proxy server"
+  3. Disable VPN or configure split-tunnel to exclude Spotify
+  4. Check C:\Windows\System32\drivers\etc\hosts — remove Spotify-related entries
+
+## DRM & Playback
+
+### EME_NO_SUPPORTED_KEYSYSTEM — No DRM key system available
+Severity: fatal
+Displayed message: "Playback of protected content is not enabled."
+Cause chain: Spotify JS -> EME API call -> Widevine CDM -> No CDM found
+Causes:
+  - Widevine CDM not installed or disabled in the browser/Chromium layer
+  - DRM playback disabled in browser settings
+  - Ad-blocker extension interfering with Widevine
+  - Old browser without Web EME support
+  - Linux: Widevine binary not present
+Resolution:
+  1. Chrome: go to chrome://components/ → Widevine Content Decryption Module → Check for update
+  2. Chrome: go to chrome://settings/content/protectedContent → enable Play protected content
+  3. Disable all browser extensions and retry
+  4. For Spotify desktop app: reinstall it — the CEF Widevine bundle is included in the installer
+  5. Linux: sudo apt install libwidevinecdm0 or enable Widevine in your browser settings
+Note: Root cause of the "Firefox works, Chrome fails" pattern: Firefox probes network state independently and does not depend on Windows NLA. It also has its own DRM stack. Chrome (and Spotify's embedded Chromium layer) fully trust the Windows NetworkChangeNotifier for online state and require the system Widevine CDM for DRM. When either is broken, Chrome and Spotify fail together while Firefox continues normally.
+
+### DISALLOW_PROTECTED_TRACK_ERROR — DRM disabled — protected content blocked
+Severity: fatal
+Displayed message: "Protected tracks not supported."
+Cause chain: Play track (DRM protected) -> Platform DRM check -> DRM disabled
+Causes:
+  - DRM disabled in browser settings
+  - Enterprise browser policy disabling EME
+Resolution:
+  1. Chrome: Settings → Content → Protected Content → Allow
+  2. Check chrome://policy/ for policies disabling EME
+  3. Use the Spotify desktop app (independent DRM stack)
+
+### CAPPING_USER_IS_CAPPED — Free tier monthly listening limit reached
+Severity: warn
+Displayed message: "User is capped."
+Cause chain: Play request (free tier) -> Monthly quota -> Limit reached
+Causes:
+  - Free plan listening quota for the month exhausted
+Resolution:
+  1. Wait for the monthly limit to reset on the 1st
+  2. Upgrade to Spotify Premium
+
+### MEDIA_DECODING_ERROR — Audio decoding error
+Severity: error
+Displayed message: "Media decoding error."
+Cause chain: Audio segment (from CDN) -> SourceBuffer -> Decoder -> MEDIA_ERR_DECODE
+Causes:
+  - Corrupted audio segment from CDN
+  - Codec unsupported by platform
+  - Hardware decoder failure
+  - Insufficient system resources
+Resolution:
+  1. Skip the track — if only one track fails, it is likely a corrupted CDN segment
+  2. Restart Spotify to reset the audio pipeline
+  3. Update graphics and audio drivers
+  4. Try disabling hardware acceleration in Spotify Settings
+
+## Installer
+
+### Installer error 18 — Files locked by another process
+Severity: error
+Displayed message: "The installer is unable to install Spotify because the files to write to are in use by another process."
+Cause chain: NSIS installer -> Write to disk (%AppData%\Spotify) -> Files locked -> Error 18
+Causes:
+  - Previous Spotify processes still running (SpotifyWebHelper, SpotifyUpdate)
+  - Comodo Firewall or iTunes holding a lock on shared files
+  - Steam background services locking files
+Resolution:
+  1. Open Task Manager — end all Spotify-related processes
+  2. Close Steam completely
+  3. Delete the folder %AppData%\Roaming\Spotify then retry
+  4. Clean boot: Win+R → msconfig → Services → Hide Microsoft → Disable All → restart → install
+  5. Try the Microsoft Store version as an alternative
+
+### Installer error 24 — Incompatible install environment
+Severity: error
+Displayed message: "Spotify installation error code 24."
+Cause chain: NSIS installer -> Environment check -> Conflict found
+Causes:
+  - Conflicting software running during installation
+  - Malware preventing installer from writing files
+  - Corrupted installer download
+Resolution:
+  1. Close all other applications before installing
+  2. Run a malware scan
+  3. Download a fresh installer from spotify.com/download (do not reuse a cached .exe)
+  4. Try installing in Safe Mode with Networking
+
+## Web API
+
+### HTTP 401 — invalid_client — Wrong app credentials
+Severity: error
+Displayed message: "{"error": "invalid_client", "error_description": "Invalid client secret"}"
+Cause chain: Developer app -> OAuth server -> Wrong secret
+Causes:
+  - Wrong client_id or client_secret in your code
+  - Using credentials from the wrong Dashboard app
+  - Secret regenerated but old value still in use
+Resolution:
+  1. Verify credentials in developer.spotify.com/dashboard
+  2. If the secret was regenerated, update it in your code or environment variables
+
+### HTTP 403 — PREMIUM_REQUIRED — Player control requires Premium
+Severity: error
+Displayed message: "Player command failed: Premium required"
+Cause chain: POST /v1/me/player -> Subscription check -> Free account
+Causes:
+  - User does not have Spotify Premium
+  - Using Client Credentials OAuth flow for player endpoints (user auth flow required)
+Resolution:
+  1. Ensure the user has Spotify Premium
+  2. Use Authorization Code Flow or PKCE — not Client Credentials — for all /me/player/* endpoints
+
+### HTTP 404 — NO_ACTIVE_DEVICE — No active Spotify device
+Severity: error
+Displayed message: "Player command failed: No active device found"
+Cause chain: Player command -> Device lookup -> No device active
+Causes:
+  - No Spotify client open on user account
+  - Stale cached device ID — it changes each session
+  - Spotify left in fully idle state
+Resolution:
+  1. Ensure a Spotify client is open before making player API calls
+  2. Call GET /v1/me/player/devices to refresh the list before issuing commands
+  3. Pass an explicit device_id in the request body
+
+### HTTP 403 — RESTRICTION_VIOLATED — Playback restriction violated
+Severity: error
+Displayed message: "Player command failed: Restriction violated"
+Cause chain: Player command -> Context disallows -> HTTP 403
+Causes:
+  - Skipping in a context that disallows it (radio, free tier)
+  - Attempting to control playback when not the active controller
+Resolution:
+  1. Check the disallows object in GET /v1/me/player before issuing the command
+  2. Ensure Premium for full playback control API access
+
+### HTTP 429 — Too Many Requests — Rate limit exceeded
+Severity: warn
+Displayed message: "HTTP 429 Too Many Requests — see Retry-After header."
+Cause chain: Burst of requests -> Spotify rate limiter -> 429 + Retry-After
+Causes:
+  - Sending too many requests per unit time
+  - Polling-based architecture making rapid repeated calls
+Resolution:
+  1. Implement exponential backoff using the Retry-After value in the response header
+  2. Cache API responses to reduce repeated identical requests
+  3. Use Spotify Connect state events instead of polling /v1/me/player
