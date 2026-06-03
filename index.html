@@ -223,6 +223,42 @@ code{font-family:'JetBrains Mono',ui-monospace,'Cascadia Code',Consolas,monospac
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;border:2px solid var(--bg)}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
 
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media(max-width:760px){
+  .shell{flex-direction:column}
+  .nav{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);padding:15px 0 13px;display:block}
+  .nav-top{padding:0 16px 13px}
+  .nav-logo{margin-bottom:13px}
+  .nav-scroll{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:2px 16px;scrollbar-width:none}
+  .nav-scroll::-webkit-scrollbar{display:none}
+  .nav-group{display:flex;gap:6px;align-items:center;padding:0;margin:0}
+  .nav-label,.nav-sep{display:none}
+  .nav-item{flex-shrink:0;border:1px solid var(--border);border-radius:20px;padding:6px 13px;gap:7px}
+  .nav-item:hover{transform:none}
+  .nav-item.on{border-color:var(--accent-line)}
+  .nav-foot{display:flex;align-items:center;gap:10px;border-top:none;margin:13px 16px 0;padding:0}
+  .theme-btn{width:auto}
+  .nav-link{margin-top:0;margin-left:auto}
+
+  .body{flex:none;width:100%;max-width:100%;padding:24px 18px 64px;margin:0}
+  .ph{margin-bottom:26px;padding-bottom:20px}
+  .ph h1{font-size:21px;letter-spacing:-.4px}
+  .ph p{font-size:13.5px}
+  .platform{gap:11px;padding:12px 13px}
+
+  .section{margin-bottom:30px}
+  .entry-head{flex-wrap:wrap;gap:7px 12px;align-items:center}
+  .entry-code{min-width:0;order:1}
+  .badge{order:2;margin-left:auto}
+  .caret{order:3}
+  .entry-title{order:4;flex-basis:100%;width:100%;font-size:13px;line-height:1.45}
+  .entry.exp{margin:4px -10px;padding:0 10px}
+
+  .cols{grid-template-columns:1fr;gap:16px}
+  .chain-wrap{padding:12px 13px}
+  .footer-links{gap:14px 18px}
+}
+
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
