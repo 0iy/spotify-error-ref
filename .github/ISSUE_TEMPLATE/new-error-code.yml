@@ -64,6 +64,6 @@ body:
     id: notes
     attributes:
       label: Additional notes
-      description: Anything else useful — edge cases, related errors, links to community threads.
+      description: Anything else useful - edge cases, related errors, links to community threads.
     validations:
       required: false

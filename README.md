@@ -9,7 +9,7 @@ community reference for spotify desktop client error codes. documents the cause 
 
 **[→ open the reference](https://0iy.github.io/spotify-error-ref)**
 
-> **windows only, for now.** i've only verified these on windows — haven't run into any of them on macOS myself. if you hit one on a mac, [open an issue](https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml&os=macOS) and i'll add it.
+> **windows only, for now.** i've only verified these on windows - haven't run into any of them on macOS myself. if you hit one on a mac, [open an issue](https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml&os=macOS) and i'll add it.
 
 ---
 
@@ -17,12 +17,12 @@ community reference for spotify desktop client error codes. documents the cause 
 
 40+ error codes across every subsystem of the spotify desktop client, including:
 
-- `auth:N` — authentication and login failures
-- `accounts:N` — account validation, region, subscription errors
-- `accesspoint:N` — AP cluster connection errors (the persistent socket spotify maintains)
-- `session:N` — post-login session errors
-- `desktop_login_accounts:N` — browser OAuth flow errors
-- EME / Widevine DRM errors — why chrome and spotify fail while firefox works
+- `auth:N` - authentication and login failures
+- `accounts:N` - account validation, region, subscription errors
+- `accesspoint:N` - AP cluster connection errors (the persistent socket spotify maintains)
+- `session:N` - post-login session errors
+- `desktop_login_accounts:N` - browser OAuth flow errors
+- EME / Widevine DRM errors - why chrome and spotify fail while firefox works
 - installer errors (18, 24, 30)
 - web API errors (developer-facing)
 
@@ -41,14 +41,14 @@ no build step. no dependencies. single file.
 
 the page renders client-side, so plain-text copies are published for machine reading:
 
-- [`llms.txt`](https://0iy.github.io/spotify-error-ref/llms.txt) — index of every documented code ([spec](https://llmstxt.org))
-- [`llms-full.txt`](https://0iy.github.io/spotify-error-ref/llms-full.txt) — full reference: message, cause chain, causes and fixes for all codes
+- [`llms.txt`](https://0iy.github.io/spotify-error-ref/llms.txt) - index of every documented code ([spec](https://llmstxt.org))
+- [`llms-full.txt`](https://0iy.github.io/spotify-error-ref/llms-full.txt) - full reference: message, cause chain, causes and fixes for all codes
 
 regenerate them after editing the data with `node tools/gen-llms.js`.
 
 ## contributing
 
-contributions welcome — especially corrections, missing error codes, or fixes verified on specific OS versions.
+contributions welcome - especially corrections, missing error codes, or fixes verified on specific OS versions.
 
 see [CONTRIBUTING.md](CONTRIBUTING.md) for how to add or correct entries.
 

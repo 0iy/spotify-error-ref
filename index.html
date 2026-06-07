@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Spotify Desktop — Error Reference</title>
-<meta name="description" content="Community reference for Spotify desktop client error codes on Windows — what each code means, what triggers it, and how to fix it. Covers auth, accounts, accesspoint, session, DRM/EME, installer and Web API errors.">
+<title>Spotify Desktop - Error Reference</title>
+<meta name="description" content="Community reference for Spotify desktop client error codes on Windows - what each code means, what triggers it, and how to fix it. Covers auth, accounts, accesspoint, session, DRM/EME, installer and Web API errors.">
 <meta name="robots" content="index,follow">
 <meta name="color-scheme" content="light dark">
 <link rel="alternate" type="text/markdown" title="llms.txt" href="https://0iy.github.io/spotify-error-ref/llms.txt">
@@ -238,7 +238,7 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.15;margin-b
     <h1 style="font-size:22px;margin:0 0 10px">Spotify Desktop Error Reference</h1>
     <p>This reference is rendered with JavaScript. Plain-text versions of every error code, with causes and resolution steps, are available here:</p>
     <ul>
-      <li><a href="llms-full.txt">Full reference — all codes, causes and fixes (llms-full.txt)</a></li>
+      <li><a href="llms-full.txt">Full reference - all codes, causes and fixes (llms-full.txt)</a></li>
       <li><a href="llms.txt">Index of documented codes (llms.txt)</a></li>
     </ul>
   </div>
@@ -257,7 +257,7 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.15;margin-b
     <p class="lede">What each error code in the Spotify desktop client means, what triggers it, and the exact steps to resolve it.</p>
     <div class="note">
       <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449 9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg></span>
-      <span><strong>Windows only, for now.</strong> Every entry is reproduced and verified on Windows. I haven't run into these on macOS — if you do, <a href="https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml&amp;os=macOS">open an issue</a> and I'll add it.</span>
+      <span><strong>Windows only, for now.</strong> Every entry is reproduced and verified on Windows. I haven't run into these on macOS - if you do, <a href="https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml&amp;os=macOS">open an issue</a> and I'll add it.</span>
     </div>
   </header>
 
@@ -293,7 +293,7 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.15;margin-b
       <a href="https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml">Submit an error code</a>
       <a href="https://github.com/0iy/spotify-error-ref">GitHub</a>
     </div>
-    <p class="ft-count" id="visit-count" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span><b id="vc-num">—</b> visitors</span></p>
+    <p class="ft-count" id="visit-count" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span><b id="vc-num">-</b> visitors</span></p>
     <p>Unofficial reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.</p>
   </footer>
 </div>
@@ -313,10 +313,10 @@ const E=[
 
 {code:'auth:2',cat:['auth','sub-auth'],sev:'error',
  title:'Authentication failure',
- msg:'Service is temporarily unavailable, please try again later. — or — The username or password is incorrect.',
+ msg:'Service is temporarily unavailable, please try again later. - or - The username or password is incorrect.',
  chain:[{l:'Login form'},{l:'Auth request',c:'fg'},{l:'Token validation',s:'server-side',c:'fg'},{l:'Rejected',c:'cr'}],
  causes:['Wrong username or password','Unstable connection causing auth timeout','Spotify server maintenance or outage','Expired cached session token'],
- fixes:[['Verify credentials — check Caps Lock'],['Reset password at spotify.com/password-reset'],['Check Spotify status page for outages'],['Disable VPN temporarily'],['Update the app: Help → About Spotify']]},
+ fixes:[['Verify credentials - check Caps Lock'],['Reset password at spotify.com/password-reset'],['Check Spotify status page for outages'],['Disable VPN temporarily'],['Update the app: Help → About Spotify']]},
 
 {code:'auth:3',cat:['auth','network','sub-auth'],sev:'error',
  title:'Firewall or proxy blocking auth',
@@ -327,7 +327,7 @@ const E=[
 
 {code:'auth:73',cat:['auth','sub-auth'],sev:'error',
  title:'Region mismatch or auth blocked',
- msg:'Error code auth:73 — region or firewall block variant.',
+ msg:'Error code auth:73 - region or firewall block variant.',
  chain:[{l:'Auth request'},{l:'GeoIP check',c:'fg'},{l:'Country mismatch',c:'fg'},{l:'Rejected',c:'cr'}],
  causes:['VPN routing through a country that doesn\'t match your account country','Account country setting outdated after relocation','Firewall blocking port 443'],
  fixes:[['Disable VPN before launching Spotify'],['Update account country: spotify.com → Profile → Edit Profile → Country'],['Spotify Settings → Advanced → Proxy → No Proxy'],['Add Spotify to firewall exceptions']]},
@@ -336,7 +336,7 @@ const E=[
 {code:'accounts:4',cat:['auth','network','sub-accounts'],sev:'fatal',
  title:'No internet connection detected',
  msg:'No internet connection detected.',
- note:'<strong>Why Firefox works but Chrome and Spotify fail:</strong> This error fires entirely client-side — no network request is ever made before showing it. The embedded Chromium layer reads <code>navigator.onLine</code> from the Windows Network Location Awareness service (netprofm) via a COM interface. When that service is broken, Chromium reports offline and Spotify shows this error. Firefox probes independently using its own network stack and ignores the Windows NLA result — which is why Firefox streams fine on the same machine while Chrome and Spotify both fail.',
+ note:'<strong>Why Firefox works but Chrome and Spotify fail:</strong> This error fires entirely client-side - no network request is ever made before showing it. The embedded Chromium layer reads <code>navigator.onLine</code> from the Windows Network Location Awareness service (netprofm) via a COM interface. When that service is broken, Chromium reports offline and Spotify shows this error. Firefox probes independently using its own network stack and ignores the Windows NLA result - which is why Firefox streams fine on the same machine while Chrome and Spotify both fail.',
  chain:[{l:'netprofm',s:'Windows NLA service',c:'cr'},{l:'INetworkListManager',s:'COM',c:'fg'},{l:'Chromium NCN',c:'fg'},{l:'navigator.onLine = false',c:'fg'},{l:'Error shown',c:'cr'}],
  causes:['netprofm service stopped or its registry keys are corrupted','INetworkListManager::IsConnectedToInternet() returning false despite working internet','VPN client causing Windows to report the adapter as offline','Spotify Offline Mode enabled in settings','Physical disconnection (WiFi / ethernet actually down)'],
  fixes:[['Open Services (Win+R → services.msc) → find "Network List" and "Network Location Awareness" → set both to Automatic and Start'],['Admin PowerShell:', 'sc start netprofm', 'then', 'sc start nlasvc'],['Run:', 'ipconfig /flushdns'],['Check Spotify Settings → Playback → confirm Offline Mode is off'],['In', 'ncpa.cpl', '→ disable unused virtual network adapters which can confuse the NLA service']]},
@@ -345,7 +345,7 @@ const E=[
  title:'Incorrect username or password',
  msg:'The username or password is incorrect.',
  chain:[{l:'Login form'},{l:'accounts service',c:'fg'},{l:'Code 3',c:'cr'}],
- causes:['Wrong username — try email address instead of display name','Wrong password — check Caps Lock and keyboard layout','Password changed on another device recently'],
+ causes:['Wrong username - try email address instead of display name','Wrong password - check Caps Lock and keyboard layout','Password changed on another device recently'],
  fixes:[['Verify exact email and password'],['Reset password at spotify.com/password-reset'],['If using a social account (Facebook/Google), use the matching login button rather than a password']]},
 
 {code:'accounts:53–55',cat:['auth','network','sub-accounts'],sev:'error',
@@ -366,7 +366,7 @@ const E=[
  title:'Session terminated by server',
  msg:'Your session has been terminated.',
  chain:[{l:'Active session',c:'gd'},{l:'Server terminates',c:'cr'},{l:'Code 127',c:'cr'}],
- causes:['Password changed on another device — all sessions invalidated','User clicked "Sign out everywhere" in account settings','Suspicious activity detected by Spotify security'],
+ causes:['Password changed on another device - all sessions invalidated','User clicked "Sign out everywhere" in account settings','Suspicious activity detected by Spotify security'],
  fixes:[['Log in again with current credentials'],['Check email for a Spotify security notification'],['Review sessions at spotify.com/account → Security and privacy']]},
 
 {code:'accounts:402',cat:['auth','sub-accounts'],sev:'fatal',
@@ -374,7 +374,7 @@ const E=[
  msg:'Your client is being updated.',
  chain:[{l:'Login attempt'},{l:'Version check',c:'fg'},{l:'Below minimum',c:'cr'},{l:'Code 402',c:'cr'}],
  causes:['Client version below Spotify\'s minimum supported version','Critical security patch required by the server'],
- fixes:[['Wait 1–2 minutes — the auto-updater should apply the patch automatically'],['If stalled: download the latest version from spotify.com/download'],['Run the installer as Administrator'],['Free up disk space if the drive is nearly full (~200 MB needed)']]},
+ fixes:[['Wait 1–2 minutes - the auto-updater should apply the patch automatically'],['If stalled: download the latest version from spotify.com/download'],['Run the installer as Administrator'],['Free up disk space if the drive is nearly full (~200 MB needed)']]},
 
 {code:'accounts:403',cat:['auth','sub-accounts'],sev:'fatal',
  title:'Account disabled',
@@ -408,7 +408,7 @@ const E=[
  title:'Premium users only',
  msg:'This app is restricted to Premium users only.',
  chain:[{l:'Login',c:'gd'},{l:'Subscription check',c:'fg'},{l:'Free account',c:'cr'}],
- causes:['Premium subscription lapsed — payment failed','Free account on a Premium-restricted client build'],
+ causes:['Premium subscription lapsed - payment failed','Free account on a Premium-restricted client build'],
  fixes:[['Check subscription at spotify.com/account/subscription'],['Update your payment method if the subscription lapsed'],['Log out and back in to refresh subscription status']]},
 
 {code:'accounts:413',cat:['auth','sub-accounts'],sev:'info',
@@ -420,7 +420,7 @@ const E=[
 
 {code:'accounts:417',cat:['auth','sub-accounts'],sev:'error',
  title:'Facebook credentials revoked',
- msg:'(No message shown — locale string is absent, a known client bug.)',
+ msg:'(No message shown - locale string is absent, a known client bug.)',
  note:'<strong>Known bug:</strong> accounts:417 has no English locale entry in the Spotify translation files. The error message area renders blank when this code fires.',
  chain:[{l:'Facebook OAuth'},{l:'FB token',c:'cr'},{l:'Code 417',s:'blank message',c:'cr'}],
  causes:['Facebook access token revoked','Facebook account unlinked from Spotify'],
@@ -451,8 +451,8 @@ const E=[
 // ─── desktop_login_accounts ────────────────────────────────────
 {code:'desktop_login_accounts:2',cat:['auth','sub-dlacc'],sev:'error',
  title:'Browser login timed out',
- msg:'Login timed out, please try again. — or — Signup timed out, please try again.',
- note:'<strong>Implementation detail:</strong> This is the only Spotify error code where the displayed message overrides the standard error dispatcher — it substitutes a dedicated timeout string based on whether the user was logging in or signing up.',
+ msg:'Login timed out, please try again. - or - Signup timed out, please try again.',
+ note:'<strong>Implementation detail:</strong> This is the only Spotify error code where the displayed message overrides the standard error dispatcher - it substitutes a dedicated timeout string based on whether the user was logging in or signing up.',
  chain:[{l:'Browser opens'},{l:'User must act',c:'fg'},{l:'~5 min timer expires',c:'cr'},{l:'Code 2',c:'cr'}],
  causes:['User did not complete browser login in time','Browser tab closed before flow finished','Browser blocked the OAuth redirect back to Spotify'],
  fixes:[['Click "Log in" again and complete it promptly'],['Ensure browser is not in Private/Incognito mode'],['Ensure spotify.com redirects are allowed in your browser'],['Try changing the default browser in Windows Settings']]},
@@ -469,38 +469,38 @@ const E=[
  msg:'A firewall may be blocking Spotify.',
  chain:[{l:'Browser login',c:'gd'},{l:'OAuth callback',c:'fg'},{l:'Firewall blocks it',c:'cr'}],
  causes:['Windows Firewall blocking the Spotify.exe OAuth redirect','Corporate firewall blocking the spotify:// custom protocol','Third-party desktop widget app (Wallpaper Engine, Rainmeter) interfering with URI handler'],
- fixes:[['Click the "proxy settings" link in the error and check the proxy configuration'],['Allow Spotify.exe in Windows Firewall — inbound and outbound'],['Try a different network to confirm if this is network-specific'],['Temporarily close Wallpaper Engine, Rainmeter, or similar apps'],['Change your Spotify password to use credential login instead of OAuth']]},
+ fixes:[['Click the "proxy settings" link in the error and check the proxy configuration'],['Allow Spotify.exe in Windows Firewall - inbound and outbound'],['Try a different network to confirm if this is network-specific'],['Temporarily close Wallpaper Engine, Rainmeter, or similar apps'],['Change your Spotify password to use credential login instead of OAuth']]},
 
 // ─── accesspoint ───────────────────────────────────────────────
 {code:'accesspoint:17',cat:['auth','network','sub-accesspoint'],sev:'error',
- title:'Access point rejected — region or firewall',
+ title:'Access point rejected - region or firewall',
  msg:'A firewall may be blocking Spotify. (Error code: 17 / accesspoint:17)',
- note:'<strong>What "accesspoint" means:</strong> This subsystem refers to Spotify\'s AP cluster — the persistent authenticated TCP connection the desktop app maintains for real-time features (playback sync, Spotify Connect). It is separate from the login and streaming servers.',
+ note:'<strong>What "accesspoint" means:</strong> This subsystem refers to Spotify\'s AP cluster - the persistent authenticated TCP connection the desktop app maintains for real-time features (playback sync, Spotify Connect). It is separate from the login and streaming servers.',
  chain:[{l:'Spotify app'},{l:'VPN / proxy',c:'fg'},{l:'AP cluster',c:'fg'},{l:'GeoIP rejection',c:'cr'}],
  causes:['VPN routing through a foreign IP the AP cluster rejects','Account country doesn\'t match actual connection country','Firewall blocking AP ports (4070, 443)'],
- fixes:[['Disable VPN — Spotify Settings → Advanced → Proxy → No Proxy'],['Update account country: spotify.com → Profile → Edit Profile → Country'],['Restart Spotify after updating country'],['Add Spotify to Windows Firewall exceptions']]},
+ fixes:[['Disable VPN - Spotify Settings → Advanced → Proxy → No Proxy'],['Update account country: spotify.com → Profile → Edit Profile → Country'],['Restart Spotify after updating country'],['Add Spotify to Windows Firewall exceptions']]},
 
 {code:'accesspoint:22',cat:['auth','sub-accesspoint'],sev:'error',
  title:'Client version rejected by access point',
  msg:'This app is restricted to Premium users only. (Error code: accesspoint:22)',
  note:'<strong>Misleading message:</strong> Despite saying "Premium users only", this fires for all account tiers when the client version is too old. Spotify clients older than approximately April 2021 are rejected by AP servers.',
  chain:[{l:'Old client version',c:'cr'},{l:'AP handshake',c:'fg'},{l:'Version rejected',c:'cr'}],
- causes:['Client too old — AP servers reject pre-2021 versions','Corrupted session state','Accumulated corrupted cache files'],
+ causes:['Client too old - AP servers reject pre-2021 versions','Corrupted session state','Accumulated corrupted cache files'],
  fixes:[['Update Spotify: Help → About Spotify → Update now (resolves this in most cases)'],['Download fresh installer from spotify.com/download or Microsoft Store'],['Log out and back in'],['Clear cache: Settings → Storage → Clear Cache']]},
 
 {code:'accesspoint:31',cat:['network','sub-accesspoint'],sev:'error',
- title:'No internet — AP connection failed',
+ title:'No internet - AP connection failed',
  msg:'No internet connection detected. (Error code: accesspoint:31)',
  chain:[{l:'AP connect'},{l:'DNS resolve',c:'fg'},{l:'TCP connect',c:'fg'},{l:'Fails',c:'cr'}],
  causes:['Actual internet connectivity loss','Mobile data APN misconfiguration when using a hotspot','Network blocking the Spotify AP cluster'],
- fixes:[['Disconnect and reconnect — wait at least 60 seconds'],['Verify internet works in a browser'],['Try a different network (mobile hotspot) to narrow down the cause']]},
+ fixes:[['Disconnect and reconnect - wait at least 60 seconds'],['Verify internet works in a browser'],['Try a different network (mobile hotspot) to narrow down the cause']]},
 
 {code:'accesspoint:39',cat:['network','sub-accesspoint'],sev:'error',
  title:'Hosts file or firewall blocking AP',
  msg:'A firewall may be blocking Spotify. (Error code: accesspoint:39)',
  chain:[{l:'AP connect'},{l:'Hosts file / firewall',c:'cr'},{l:'Connection denied',c:'cr'}],
  causes:['Hosts file contains entries blocking Spotify AP domains','Multiple network interfaces confusing IP routing'],
- fixes:[['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '— remove lines containing "spotify"'],['Win+R →', 'ncpa.cpl', '→ disable inactive or virtual ethernet adapters'],['Run Spotify in Safe Mode with Networking to test whether a startup app is interfering']]},
+ fixes:[['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '- remove lines containing "spotify"'],['Win+R →', 'ncpa.cpl', '→ disable inactive or virtual ethernet adapters'],['Run Spotify in Safe Mode with Networking to test whether a startup app is interfering']]},
 
 {code:'accesspoint:50',cat:['network','sub-accesspoint'],sev:'error',
  title:'Network blocking Spotify at ISP or corporate level',
@@ -516,7 +516,7 @@ const E=[
  note:'<strong>Root cause of the "Firefox works, Chrome fails" pattern:</strong> Firefox probes network state independently and does not depend on Windows NLA. It also has its own DRM stack. Chrome (and Spotify\'s embedded Chromium layer) fully trust the Windows NetworkChangeNotifier for online state and require the system Widevine CDM for DRM. When either is broken, Chrome and Spotify fail together while Firefox continues normally.',
  chain:[{l:'Spotify JS'},{l:'EME API call',c:'fg'},{l:'Widevine CDM',c:'cr'},{l:'No CDM found',c:'cr'}],
  causes:['Widevine CDM not installed or disabled in the browser/Chromium layer','DRM playback disabled in browser settings','Ad-blocker extension interfering with Widevine','Old browser without Web EME support','Linux: Widevine binary not present'],
- fixes:[['Chrome: go to', 'chrome://components/', '→ Widevine Content Decryption Module → Check for update'],['Chrome: go to', 'chrome://settings/content/protectedContent', '→ enable Play protected content'],['Disable all browser extensions and retry'],['For Spotify desktop app: reinstall it — the CEF Widevine bundle is included in the installer'],['Linux:', 'sudo apt install libwidevinecdm0', 'or enable Widevine in your browser settings']]},
+ fixes:[['Chrome: go to', 'chrome://components/', '→ Widevine Content Decryption Module → Check for update'],['Chrome: go to', 'chrome://settings/content/protectedContent', '→ enable Play protected content'],['Disable all browser extensions and retry'],['For Spotify desktop app: reinstall it - the CEF Widevine bundle is included in the installer'],['Linux:', 'sudo apt install libwidevinecdm0', 'or enable Widevine in your browser settings']]},
 
 {code:'EME_LICENSE_REQUEST_FAILED_WITH_STATUS',cat:['drm','network'],sev:'error',
  title:'DRM license request returned HTTP error',
@@ -526,7 +526,7 @@ const E=[
  fixes:[['Retry playback after a few seconds'],['Log out and back in to refresh the auth token'],['Check HTTPS to *.spotify.com is not blocked']]},
 
 {code:'DISALLOW_PROTECTED_TRACK_ERROR',cat:['drm'],sev:'fatal',
- title:'DRM disabled — protected content blocked',
+ title:'DRM disabled - protected content blocked',
  msg:'Protected tracks not supported.',
  chain:[{l:'Play track',s:'DRM protected'},{l:'Platform DRM check',c:'cr'},{l:'DRM disabled',c:'cr'}],
  causes:['DRM disabled in browser settings','Enterprise browser policy disabling EME'],
@@ -544,7 +544,7 @@ const E=[
  msg:'Media decoding error.',
  chain:[{l:'Audio segment',s:'from CDN'},{l:'SourceBuffer',c:'fg'},{l:'Decoder',c:'fg'},{l:'MEDIA_ERR_DECODE',c:'cr'}],
  causes:['Corrupted audio segment from CDN','Codec unsupported by platform','Hardware decoder failure','Insufficient system resources'],
- fixes:[['Skip the track — if only one track fails, it is likely a corrupted CDN segment'],['Restart Spotify to reset the audio pipeline'],['Update graphics and audio drivers'],['Try disabling hardware acceleration in Spotify Settings']]},
+ fixes:[['Skip the track - if only one track fails, it is likely a corrupted CDN segment'],['Restart Spotify to reset the audio pipeline'],['Update graphics and audio drivers'],['Try disabling hardware acceleration in Spotify Settings']]},
 
 // ─── installer ─────────────────────────────────────────────────
 {code:'Installer error 18',cat:['installer'],sev:'error',
@@ -552,7 +552,7 @@ const E=[
  msg:'The installer is unable to install Spotify because the files to write to are in use by another process.',
  chain:[{l:'NSIS installer'},{l:'Write to disk',s:'%AppData%\\Spotify',c:'fg'},{l:'Files locked',c:'cr'},{l:'Error 18',c:'cr'}],
  causes:['Previous Spotify processes still running (SpotifyWebHelper, SpotifyUpdate)','Comodo Firewall or iTunes holding a lock on shared files','Steam background services locking files'],
- fixes:[['Open Task Manager — end all Spotify-related processes'],['Close Steam completely'],['Delete the folder', '%AppData%\\Roaming\\Spotify', 'then retry'],['Clean boot: Win+R →', 'msconfig', '→ Services → Hide Microsoft → Disable All → restart → install'],['Try the Microsoft Store version as an alternative']]},
+ fixes:[['Open Task Manager - end all Spotify-related processes'],['Close Steam completely'],['Delete the folder', '%AppData%\\Roaming\\Spotify', 'then retry'],['Clean boot: Win+R →', 'msconfig', '→ Services → Hide Microsoft → Disable All → restart → install'],['Try the Microsoft Store version as an alternative']]},
 
 {code:'Installer error 24',cat:['installer'],sev:'error',
  title:'Incompatible install environment',
@@ -566,40 +566,40 @@ const E=[
  msg:'A firewall may be blocking Spotify.',
  chain:[{l:'Network request'},{l:'System proxy',c:'fg'},{l:'Proxy / VPN',c:'cr'}],
  causes:['Proxy configured in Windows system settings','VPN routing Spotify traffic incorrectly','Hosts file containing Spotify-blocking proxy redirect entries'],
- fixes:[['Spotify: Settings → Advanced → Proxy → No Proxy'],['Windows: Settings → Network & Internet → Proxy → turn off "Use a proxy server"'],['Disable VPN or configure split-tunnel to exclude Spotify'],['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '— remove Spotify-related entries']]},
+ fixes:[['Spotify: Settings → Advanced → Proxy → No Proxy'],['Windows: Settings → Network & Internet → Proxy → turn off "Use a proxy server"'],['Disable VPN or configure split-tunnel to exclude Spotify'],['Check', 'C:\\Windows\\System32\\drivers\\etc\\hosts', '- remove Spotify-related entries']]},
 
 // ─── Web API ────────────────────────────────────────────────────
-{code:'HTTP 401 — invalid_client',cat:['webapi'],sev:'error',
+{code:'HTTP 401 - invalid_client',cat:['webapi'],sev:'error',
  title:'Wrong app credentials',
  msg:'{"error": "invalid_client", "error_description": "Invalid client secret"}',
  chain:[{l:'Developer app'},{l:'OAuth server',c:'fg'},{l:'Wrong secret',c:'cr'}],
  causes:['Wrong client_id or client_secret in your code','Using credentials from the wrong Dashboard app','Secret regenerated but old value still in use'],
  fixes:[['Verify credentials in developer.spotify.com/dashboard'],['If the secret was regenerated, update it in your code or environment variables']]},
 
-{code:'HTTP 403 — PREMIUM_REQUIRED',cat:['webapi'],sev:'error',
+{code:'HTTP 403 - PREMIUM_REQUIRED',cat:['webapi'],sev:'error',
  title:'Player control requires Premium',
  msg:'Player command failed: Premium required',
  chain:[{l:'POST /v1/me/player'},{l:'Subscription check',c:'fg'},{l:'Free account',c:'cr'}],
  causes:['User does not have Spotify Premium','Using Client Credentials OAuth flow for player endpoints (user auth flow required)'],
- fixes:[['Ensure the user has Spotify Premium'],['Use Authorization Code Flow or PKCE — not Client Credentials — for all /me/player/* endpoints']]},
+ fixes:[['Ensure the user has Spotify Premium'],['Use Authorization Code Flow or PKCE - not Client Credentials - for all /me/player/* endpoints']]},
 
-{code:'HTTP 404 — NO_ACTIVE_DEVICE',cat:['webapi'],sev:'error',
+{code:'HTTP 404 - NO_ACTIVE_DEVICE',cat:['webapi'],sev:'error',
  title:'No active Spotify device',
  msg:'Player command failed: No active device found',
  chain:[{l:'Player command'},{l:'Device lookup',c:'fg'},{l:'No device active',c:'cr'}],
- causes:['No Spotify client open on user account','Stale cached device ID — it changes each session','Spotify left in fully idle state'],
+ causes:['No Spotify client open on user account','Stale cached device ID - it changes each session','Spotify left in fully idle state'],
  fixes:[['Ensure a Spotify client is open before making player API calls'],['Call GET /v1/me/player/devices to refresh the list before issuing commands'],['Pass an explicit device_id in the request body']]},
 
-{code:'HTTP 403 — RESTRICTION_VIOLATED',cat:['webapi'],sev:'error',
+{code:'HTTP 403 - RESTRICTION_VIOLATED',cat:['webapi'],sev:'error',
  title:'Playback restriction violated',
  msg:'Player command failed: Restriction violated',
  chain:[{l:'Player command'},{l:'Context disallows',c:'fg'},{l:'HTTP 403',c:'cr'}],
  causes:['Skipping in a context that disallows it (radio, free tier)','Attempting to control playback when not the active controller'],
  fixes:[['Check the disallows object in GET /v1/me/player before issuing the command'],['Ensure Premium for full playback control API access']]},
 
-{code:'HTTP 429 — Too Many Requests',cat:['webapi'],sev:'warn',
+{code:'HTTP 429 - Too Many Requests',cat:['webapi'],sev:'warn',
  title:'Rate limit exceeded',
- msg:'HTTP 429 Too Many Requests — see Retry-After header.',
+ msg:'HTTP 429 Too Many Requests - see Retry-After header.',
  chain:[{l:'Burst of requests',c:'cr'},{l:'Spotify rate limiter',c:'fg'},{l:'429 + Retry-After',c:'cr'}],
  causes:['Sending too many requests per unit time','Polling-based architecture making rapid repeated calls'],
  fixes:[['Implement exponential backoff using the Retry-After value in the response header'],['Cache API responses to reduce repeated identical requests'],['Use Spotify Connect state events instead of polling /v1/me/player']]},
@@ -765,15 +765,15 @@ render();
 })();
 
 // ── Structured data: FAQ generated from the error data ──────────
-// Single source of truth — built from E so it never drifts from the page.
+// Single source of truth - built from E so it never drifts from the page.
 (function(){
   try{
     const txt=s=>String(s).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
     const mainEntity=E.map(e=>{
       const causes=(e.causes||[]).join('. ');
       const fixes=(e.fixes||[]).map(f=>Array.isArray(f)?f.join(' '):f).join('. ');
-      const ans=[e.msg?'Message: '+e.msg:'',causes?'Causes: '+causes:'',fixes?'Fix: '+fixes:''].filter(Boolean).join(' — ');
-      return {"@type":"Question","name":txt(e.code+' — '+e.title),
+      const ans=[e.msg?'Message: '+e.msg:'',causes?'Causes: '+causes:'',fixes?'Fix: '+fixes:''].filter(Boolean).join(' - ');
+      return {"@type":"Question","name":txt(e.code+' - '+e.title),
         "acceptedAnswer":{"@type":"Answer","text":txt(ans)||txt(e.title)}};
     });
     const s=document.createElement('script');
@@ -793,7 +793,7 @@ render();
     2. Put that code in GC_CODE below.
     3. In GoatCounter: Settings → "Allow adding visitor count to your
        website" must be enabled so the public /counter/ endpoint works.
-  Until GC_CODE is set, the counter just stays hidden — nothing breaks.
+  Until GC_CODE is set, the counter just stays hidden - nothing breaks.
 -->
 <script>
 (function(){
