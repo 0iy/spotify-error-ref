@@ -2,8 +2,8 @@
 
 [![Author](https://img.shields.io/badge/author-0iy-red.svg)](https://github.com/0iy)
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=0iy.spotify-error-ref)](https://github.com/0iy/spotify-error-ref)
-[![Stars](https://img.shields.io/github/stars/0iy/spotify-error-ref.svg?style=flat)](https://github.com/0iy/spotify-error-ref)
-[![License](https://img.shields.io/github/license/0iy/spotify-error-ref.svg)](LICENSE)
+[![Stars](https://badgen.net/github/stars/0iy/spotify-error-ref)](https://github.com/0iy/spotify-error-ref/stargazers)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 community reference for spotify desktop client error codes. documents the cause chain, trigger condition, and resolution steps for each known error.
 
