@@ -15,6 +15,46 @@
 <meta property="og:title" content="Spotify Desktop Error Reference">
 <meta property="og:description" content="What each Spotify desktop error code means, what triggers it, and how to fix it.">
 <meta property="og:url" content="https://0iy.github.io/spotify-error-ref/">
+<meta property="og:locale" content="en_US">
+<link rel="canonical" href="https://0iy.github.io/spotify-error-ref/">
+<meta name="author" content="0iy">
+<meta name="keywords" content="spotify error codes, spotify desktop error, spotify auth error, accesspoint, spotify DRM EME error, spotify installer error, spotify web api error">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spotify Desktop Error Reference">
+<meta name="twitter:description" content="What each Spotify desktop error code means, what triggers it, and how to fix it.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0c0e" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://0iy.github.io/spotify-error-ref/#website",
+      "url": "https://0iy.github.io/spotify-error-ref/",
+      "name": "Spotify Desktop Error Reference",
+      "description": "Community reference for Spotify desktop client error codes on Windows.",
+      "inLanguage": "en",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://0iy.github.io/spotify-error-ref/?q={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "TechArticle",
+      "@id": "https://0iy.github.io/spotify-error-ref/#article",
+      "headline": "Spotify Desktop Error Reference",
+      "description": "What each Spotify desktop client error code means, what triggers it, and how to fix it. Covers auth, accounts, accesspoint, session, DRM/EME, installer and Web API errors.",
+      "inLanguage": "en",
+      "isPartOf": { "@id": "https://0iy.github.io/spotify-error-ref/#website" },
+      "mainEntityOfPage": "https://0iy.github.io/spotify-error-ref/",
+      "keywords": "spotify error codes, spotify desktop, auth, accesspoint, DRM, EME, installer, web api",
+      "license": "https://opensource.org/licenses/MIT"
+    }
+  ]
+}
+</script>
 <style>
 :root{
   --bg:#fff;--bg1:#fafafa;--bg2:#f4f4f5;--bd:#e6e6e9;--bd1:#efeff1;
@@ -149,6 +189,9 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.15;margin-b
 .ft-links a{display:inline-flex;align-items:center;gap:6px;color:var(--tx2);font-size:12.5px}
 .ft-links a:hover{color:var(--ac2)}
 .ft-links svg{color:var(--tx3)}
+.ft-count{display:inline-flex;align-items:center;gap:6px;margin-bottom:11px;font-size:12.5px;color:var(--tx2);font-variant-numeric:tabular-nums}
+.ft-count svg{color:var(--tx3);flex:none}
+.ft-count b{color:var(--tx);font-weight:600}
 
 /* animations */
 @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
@@ -250,6 +293,7 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1.15;margin-b
       <a href="https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml">Submit an error code</a>
       <a href="https://github.com/0iy/spotify-error-ref">GitHub</a>
     </div>
+    <p class="ft-count" id="visit-count" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span><b id="vc-num">—</b> visitors</span></p>
     <p>Unofficial reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.</p>
   </footer>
 </div>
@@ -604,11 +648,12 @@ function chainHtml(chain){
 }
 const fixHtml=f=>(Array.isArray(f)?f:[f]).map(p=>/\\/.test(p)?'<code>'+esc(p)+'</code>':esc(p)).join(' ');
 
+const slug=c=>'e-'+String(c).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 function entryHtml(e){
   const bc={fatal:'b-fatal',error:'b-error',warn:'b-warn',info:'b-info'}[e.sev]||'b-info';
   const causes=(e.causes||[]).map(c=>'<li>'+esc(c)+'</li>').join('');
   const fixes=(e.fixes||[]).map(f=>'<li>'+fixHtml(f)+'</li>').join('');
-  return'<article class="entry" data-sev="'+e.sev+'">'+
+  return'<article id="'+slug(e.code)+'" class="entry" data-sev="'+e.sev+'" data-code="'+esc(e.code)+'">'+
     '<button class="ehead" type="button" aria-expanded="false">'+
       '<span class="code">'+hl(e.code)+'</span>'+
       '<span class="etitle">'+hl(e.title)+'</span>'+
@@ -654,8 +699,10 @@ function render(){
 // ── Events ──────────────────────────────────────────────────────
 results.addEventListener('click',ev=>{
   const h=ev.target.closest('.ehead');if(!h)return;
-  const open=h.parentElement.classList.toggle('open');
+  const art=h.parentElement;
+  const open=art.classList.toggle('open');
   h.setAttribute('aria-expanded',open?'true':'false');
+  if(open&&art.id){try{history.replaceState(null,'','#'+art.id);}catch(_){}}
 });
 qEl.addEventListener('input',e=>{Q=e.target.value.trim();render();});
 document.querySelector('.seg').addEventListener('click',e=>{
@@ -697,6 +744,78 @@ themeBtn.addEventListener('click',()=>{
 })();
 
 render();
+
+// ── Deep links: ?q=<search> and #e-<code> ───────────────────────
+(function(){
+  try{
+    const q=new URLSearchParams(location.search).get('q');
+    if(q){qEl.value=q;Q=q.trim();render();}
+  }catch(_){}
+  function openHash(){
+    const id=decodeURIComponent((location.hash||'').slice(1));if(!id)return;
+    const art=document.getElementById(id);if(!art)return;
+    if(!art.classList.contains('open')){
+      art.classList.add('open');
+      const hd=art.querySelector('.ehead');if(hd)hd.setAttribute('aria-expanded','true');
+    }
+    art.scrollIntoView({block:'center'});
+  }
+  openHash();
+  window.addEventListener('hashchange',openHash);
+})();
+
+// ── Structured data: FAQ generated from the error data ──────────
+// Single source of truth — built from E so it never drifts from the page.
+(function(){
+  try{
+    const txt=s=>String(s).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+    const mainEntity=E.map(e=>{
+      const causes=(e.causes||[]).join('. ');
+      const fixes=(e.fixes||[]).map(f=>Array.isArray(f)?f.join(' '):f).join('. ');
+      const ans=[e.msg?'Message: '+e.msg:'',causes?'Causes: '+causes:'',fixes?'Fix: '+fixes:''].filter(Boolean).join(' — ');
+      return {"@type":"Question","name":txt(e.code+' — '+e.title),
+        "acceptedAnswer":{"@type":"Answer","text":txt(ans)||txt(e.title)}};
+    });
+    const s=document.createElement('script');
+    s.type='application/ld+json';
+    s.textContent=JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":mainEntity});
+    document.head.appendChild(s);
+  }catch(_){}
+})();
+</script>
+
+<!-- ── Visitor counter (GoatCounter) ───────────────────────────────
+  Counts unique visitors to this site, privacy-friendly (no cookies).
+  Setup (one time, ~2 min):
+    1. Sign up free at https://www.goatcounter.com and pick a code
+       (e.g. "spotify-error-ref"); your dashboard becomes
+       <code>.goatcounter.com.
+    2. Put that code in GC_CODE below.
+    3. In GoatCounter: Settings → "Allow adding visitor count to your
+       website" must be enabled so the public /counter/ endpoint works.
+  Until GC_CODE is set, the counter just stays hidden — nothing breaks.
+-->
+<script>
+(function(){
+  var GC_CODE='YOUR_GOATCOUNTER_CODE'; // e.g. 'spotify-error-ref'
+  if(!GC_CODE||GC_CODE==='YOUR_GOATCOUNTER_CODE')return;
+  var base='https://'+GC_CODE+'.goatcounter.com';
+  // 1. record this visit
+  var s=document.createElement('script');
+  s.async=true;s.src='//gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter',base+'/count');
+  document.body.appendChild(s);
+  // 2. show the running unique-visitor total
+  fetch(base+'/counter/TOTAL.json')
+    .then(function(r){return r.ok?r.json():Promise.reject();})
+    .then(function(d){
+      var n=(d.count_unique!=null?d.count_unique:d.count);
+      if(n==null)return;
+      document.getElementById('vc-num').textContent=n;
+      document.getElementById('visit-count').hidden=false;
+    })
+    .catch(function(){});
+})();
 </script>
 </body>
 </html>
