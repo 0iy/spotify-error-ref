@@ -53,6 +53,7 @@ The website renders its content with JavaScript. The plain-text files linked bel
 - MEDIA_DECODING_ERROR - Audio decoding error (error, Windows)
 - Exclusive mode playback failure - Content won't play in exclusive audio mode (warn, macOS)
 - CLIENT_VERSION_SUNSETTED - Client version no longer supported (fatal, Windows & macOS)
+- ONE_TRACK_UNPLAYABLE (playback dispatcher) - How playback errors become on-screen messages (error, Windows & macOS)
 - NOT_AVAILABLE_IN_CURRENT_REGION - Track not available in your region (error, Windows & macOS)
 - NOT_AVAILABLE_IN_NON_PREMIUM - Track requires Premium (warn, Windows & macOS)
 - BANNED_BY_USER_ARTIST / _TRACK - Artist or track hidden by you (info, Windows & macOS)

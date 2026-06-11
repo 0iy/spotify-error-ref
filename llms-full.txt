@@ -2,7 +2,7 @@
 
 Source: https://0iy.github.io/spotify-error-ref/
 Repository: https://github.com/0iy/spotify-error-ref
-Scope: Windows and macOS desktop client. 61 error codes documented.
+Scope: Windows and macOS desktop client. 62 error codes documented.
 Most client errors are shared across Windows and macOS; the installer codes differ per OS. Each entry below is tagged with the platform it applies to.
 Unofficial community reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.
 
@@ -329,7 +329,7 @@ Resolution:
 Severity: error
 Platform: Windows
 Displayed message: "A firewall may be blocking Spotify."
-Cause chain: Browser login -> OAuth callback -> Firewall blocks it
+Cause chain: oauth2/v2/auth in browser -> redirect to desktop/auth/success -> callback blocked
 Causes:
   - Windows Firewall blocking the Spotify.exe OAuth redirect
   - Corporate firewall blocking the spotify:// custom protocol
@@ -340,6 +340,10 @@ Resolution:
   3. Try a different network to confirm if this is network-specific
   4. Temporarily close Wallpaper Engine, Rainmeter, or similar apps
   5. Change your Spotify password to use credential login instead of OAuth
+Note: The desktop OAuth round-trip. Browser login opens accounts.spotify.com/oauth2/v2/auth in your default browser; on success the browser is redirected to open.spotify.com/desktop/auth/success (failure goes to /desktop/auth/error), which hands the result back to the desktop app. If that final callback can't reach the app - firewall, a hijacked spotify:// URI handler, or the wrong default browser - the token never arrives.browser → https://accounts.spotify.com/oauth2/v2/auth?...
+        → (user authorizes)
+        → https://open.spotify.com/desktop/auth/success   // handed back to app
+// callback blocked / hijacked → desktop_login_accounts:5
 
 ### accesspoint:17 - Access point rejected - region or firewall
 Severity: error
@@ -379,7 +383,7 @@ Note: Misleading message: Despite saying "Premium users only", this fires for al
 Severity: error
 Platform: Windows
 Displayed message: "No internet connection detected. (Error code: accesspoint:31)"
-Cause chain: AP connect -> DNS resolve -> TCP connect -> Fails
+Cause chain: GET apresolve.spotify.com -> Resolve AP host -> Connect ap.spotify.com:4070 -> Fails
 Causes:
   - Actual internet connectivity loss
   - Mobile data APN misconfiguration when using a hotspot
@@ -388,12 +392,16 @@ Resolution:
   1. Disconnect and reconnect - wait at least 60 seconds
   2. Verify internet works in a browser
   3. Try a different network (mobile hotspot) to narrow down the cause
+Note: How the AP connection is actually made. Before opening its persistent socket, the client GETs apresolve.spotify.com to obtain the address of an access point in the nearest cluster, then opens an authenticated connection to that host (the ap.spotify.com family, port 4070/443). accesspoint:31 means that two-step connect never completed - DNS for apresolve failed, or the returned AP host was unreachable.GET https://apresolve.spotify.com/
+// → { "ap_list": ["ap-gae2.spotify.com:4070", ...] }
+connect(ap_list[0]);   // persistent authenticated socket
+// either step fails → accesspoint:31
 
 ### accesspoint:39 - Hosts file or firewall blocking AP
 Severity: error
 Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. (Error code: accesspoint:39)"
-Cause chain: AP connect -> Hosts file / firewall -> Connection denied
+Cause chain: apresolve / AP connect -> Hosts file / firewall -> Connection denied
 Causes:
   - Hosts file contains entries blocking Spotify AP domains
   - Multiple network interfaces confusing IP routing
@@ -401,24 +409,26 @@ Resolution:
   1. Check C:\Windows\System32\drivers\etc\hosts - remove lines containing "spotify"
   2. Win+R → ncpa.cpl → disable inactive or virtual ethernet adapters
   3. Run Spotify in Safe Mode with Networking to test whether a startup app is interfering
+Note: The same two-step AP connect as accesspoint:31, blocked on this machine. Either the apresolve.spotify.com lookup or the follow-up AP socket is being refused locally - typically a hosts-file entry pointing a Spotify domain (apresolve, ap, or spclient) at a dead address, or a local firewall rule. Multiple active adapters can also send the AP connection out the wrong interface.
 
 ### accesspoint:50 - Network blocking Spotify at ISP or corporate level
 Severity: error
 Platform: Windows
 Displayed message: "Your internet network is blocking Spotify. Contact your network administrator."
-Cause chain: AP connect -> ISP / corporate gateway -> Blocked
+Cause chain: apresolve / AP connect -> ISP / corporate gateway -> Blocked upstream
 Causes:
   - ISP, corporate, or school network blocking Spotify AP servers at network level
 Resolution:
   1. Contact your network administrator to whitelist *.spotify.com and apresolve.spotify.com
   2. Use a mobile hotspot as a workaround
   3. A VPN can bypass network-level blocking in this specific case
+Note: The same AP path, blocked upstream. Unlike accesspoint:39, the apresolve/AP connection isn't refused on your machine but by the network itself - an ISP, school, or corporate gateway dropping traffic to the Spotify AP cluster. Whitelisting *.spotify.com and apresolve.spotify.com at the gateway, or switching networks, restores it.
 
 ### EME_LICENSE_REQUEST_FAILED_WITH_STATUS - DRM license request returned HTTP error
 Severity: error
 Platform: Windows
 Displayed message: "License request failed (HTTP status code)."
-Cause chain: Track load -> DRM license server -> HTTP 4xx / 5xx
+Cause chain: CDM ready -> POST license challenge -> HTTP 4xx / 5xx
 Causes:
   - License server temporarily down
   - Invalid or expired auth token
@@ -427,6 +437,11 @@ Resolution:
   1. Retry playback after a few seconds
   2. Log out and back in to refresh the auth token
   3. Check HTTPS to *.spotify.com is not blocked
+Note: Where it sits. After the CDM is available, the player still has to fetch a license: it POSTs a challenge to the license server and calls update() on the media-key session with the response. A non-2xx status raises EME_LICENSE_REQUEST_FAILED_WITH_STATUS; an empty body raises EME_LICENSE_REQUEST_EMPTY_RESPONSE. These are low-level ek faults with no message of their own, so they get wrapped into the default playback snackbar.resp = POST(licenseServer, keySession.challenge);
+if (resp.status &gt;= 400) throw EME_LICENSE_REQUEST_FAILED_WITH_STATUS;
+if (resp.body.empty)   throw EME_LICENSE_REQUEST_EMPTY_RESPONSE;
+keySession.update(resp.body);   // → EME_LICENSE_UPDATE_FAILED on error
+// any of these → ONE_TRACK_UNPLAYABLE → default message
 
 ### Error 30 - Proxy or firewall blocking connections
 Severity: error
@@ -458,13 +473,26 @@ Resolution:
   2. Disable any VPN or proxy and retry
   3. Temporarily disable antivirus HTTPS inspection / network filtering
   4. Download Spotify directly from spotify.com/download and open the .dmg yourself
-Note: How it surfaces: the installer retries with backoff first - it only shows the "Installation Failed" alert once all retries are exhausted. The alert button "Download from Spotify.com" opens the manual download page.
+Note: Exact flow. The download runs through an NSURLConnection delegate. Two checks can fail it: an HTTP response status of 400 or higher (the connection is cancelled), or a transport-level connection:didFailWithError: (DNS, TLS, or timeout). Either one enters a retry loop with a fixed backoff table - only once the retries are exhausted does the installer raise an NSError with code -1, which the dispatcher maps to the string key sInstallerOsxDownloadFailedErrorDescription.// connection:didReceiveResponse:
+if (http.statusCode &gt;= 400) {
+    [connection cancel];
+    downloadFinishedWithError(httpError);    // -&gt; retry or fail
+}
+
+// downloadFinishedWithError: (retry guard)
+if (downloadRetries &lt; maxRetryCount) {
+    downloadRetries++;
+    scheduleRetry(retryTable[downloadRetries]);   // backoff
+} else {
+    completeInstallWithError(                      // gives up -&gt; alert
+        [NSError errorWithDomain:@"com.spotify.installer" code:-1 ...]);
+}During the countdown the status label reads "Download failed. Retrying in %ds." The alert's "Download from Spotify.com" button opens spotify.com/redirect/install-failed.
 
 ### authorization-status (No connection) - Lost connection to Spotify (reconnecting)
 Severity: warn
 Platform: Windows & macOS
 Displayed message: "Couldn't connect to Spotify."
-Cause chain: Active session -> AP connection drops -> Reconnecting… -> Retry backoff
+Cause chain: Active session -> AP socket drops -> AUTHENTICATION/CONNECTION_ERROR -> 500ms retry poll
 Causes:
   - Network change (Wi-Fi ↔ ethernet, VPN toggled)
   - Mac/PC sleep-wake tore down the socket
@@ -475,24 +503,34 @@ Resolution:
   2. Click Retry in the top-bar "No connection" badge
   3. Toggle Wi-Fi off and on, or reconnect your network
   4. If it persists, fully quit and reopen Spotify
+Note: Why it's a badge, not an error page. This is the post-login reconnection path, separate from the login flow. The native access-point client keeps a persistent socket open; when it drops, the bridge fires an AUTHENTICATION_ERROR/CONNECTION_ERROR and the authorization-status component renders the top-bar badge and drives a countdown timer that auto-retries.// authorization-status component
+onEvent(AUTHENTICATION_ERROR | CONNECTION_ERROR) {
+  badge   = "No connection";
+  title   = "Couldn't connect to Spotify.";
+  setInterval(500ms, () =&gt; {            // countdown poll
+    if (--secondsLeft &lt;= 0) reconnect(); // auto-retry with backoff
+    else show("Retrying in " + secondsLeft + "...");
+  });
+}Because it auto-retries, a brief flash is normal after sleep/wake or a network switch - it only needs action if it stays stuck.
 
 ### NOT_AVAILABLE_OFFLINE - Offline mode is blocking playback
 Severity: info
 Platform: Windows & macOS
 Displayed message: "Please turn off offline mode and try again."
-Cause chain: Play track -> Offline mode on
+Cause chain: Play track -> Offline mode + not downloaded -> NOT_AVAILABLE_OFFLINE
 Causes:
   - Spotify Offline Mode is enabled
   - The track isn't downloaded for offline use
 Resolution:
   1. Turn off Offline Mode (Spotify menu → toggle off Offline Mode)
   2. Download the track or playlist for offline use while online
+Note: Reason NOT_AVAILABLE_OFFLINE in the waterfall. It only fires when the track isn't already downloaded; a downloaded track plays fine in offline mode. Distinct from the connection-lost badge, which is about an actual dropped socket.
 
 ### FRAGMENT_REQUEST_FAILED_WITH_STATUS - Audio segment download failed
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Spotify can't play this right now. If you have the file on your computer you can import it."
-Cause chain: Next segment needed -> Audio CDN -> HTTP 403 / 404 / 503
+Cause chain: Next segment needed -> Audio CDN GET -> 403 / 404 / 503 -> retry  or  fatal
 Causes:
   - CDN returned an error: 403 (license expired), 404 (track removed / cache miss), or 503 (overloaded)
   - Network interruption mid-stream
@@ -500,34 +538,44 @@ Resolution:
   1. Skip and replay the track - retryable errors recover automatically
   2. Log out and back in to refresh your license token
   3. Check your connection if many tracks fail in a row
+Note: Retryable vs fatal. Audio streams in segments; each one is an HTTP GET to the audio CDN. When a segment returns a non-2xx status the player's error handler classifies it: transient statuses are retried with backoff and you never see anything, while a fatal one is wrapped into ONE_TRACK_UNPLAYABLE and shown.// segment fetch → handlePlaybackError()
+status = GET(audioCDN, segment);
+switch (status) {
+  case 503: case 500:  retryWithBackoff();      break;  // overloaded → silent
+  case 403:            refreshLicense(); retry();  break;  // license expired
+  case 404:            fatal();                    break;  // track removed / cache miss
+}
+// fatal → Z9.ONE_TRACK_UNPLAYABLE → default snackbarSo a single failing track that recovers on replay is almost always a 403/expired-license; many tracks failing at once points at the network.
 
 ### max_subscriptions_reached - Too many Spotify instances open (tab limit)
 Severity: warn
 Platform: Windows & macOS
 Displayed message: "You've got too many tabs open. Close this one and continue listening."
-Cause chain: New session -> Instance limit
+Cause chain: New session subscribes -> Concurrent count check -> max_subscriptions_reached
 Causes:
   - Too many Spotify tabs or instances open on the same account
 Resolution:
   1. Close other Spotify tabs or windows
   2. Quit duplicate Spotify instances and reopen a single one
+Note: A route-level error page, not a playback snackbar. Each open client/tab takes a "subscription" to the account's player state; opening one past the allowed concurrent count renders the max_subscriptions_reached error page on the newest one. Closing any other instance frees a slot immediately.
 
 ### offline device-limit-reached - Offline device limit reached
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Remove all downloads from another device to listen offline with this one."
-Cause chain: Download for offline -> Device count check -> Limit reached
+Cause chain: Start offline download -> License server device count -> count ≥ limit
 Causes:
   - Too many devices already have offline downloads for this account (typically 5)
 Resolution:
   1. Remove downloads from a device you no longer use
   2. Spotify allows offline downloads on a limited number of devices per account
+Note: Enforced server-side at download-authorization time. When you start a download the client asks the license server to authorize offline use; the server counts how many devices already hold offline content for the account and rejects the request past the cap (typically 5). It is about the download step, not playback - already-downloaded tracks keep working.
 
 ### connect.device-picker (restricted / unsupported) - Can't connect to this device
 Severity: warn
 Platform: Windows & macOS
 Displayed message: "Sorry, we can't connect to this device. / Update this device and the Spotify app."
-Cause chain: Device picker -> Target device -> Restricted / outdated
+Cause chain: Device picker -> Reachability / version / rights check -> Restricted / outdated / off-network
 Causes:
   - Target device firmware too old ("No longer works with Spotify")
   - Devices on different Wi-Fi networks
@@ -536,6 +584,7 @@ Resolution:
   1. Put both devices on the same Wi-Fi network ("Check your WiFi")
   2. Update the target device firmware and the Spotify app
   3. Wake the device and retry
+Note: One device-picker, several distinct states. The Spotify Connect picker maps each failure to its own string: firmware too old → "No longer works with Spotify"; devices on different networks → "Check your WiFi"; account not allowed on the device type → "Not available for your account"; asleep → "Connect to WiFi and wake device". They share the same picker UI, so the fix depends on which sub-message you actually see.
 
 ## DRM & Playback
 
@@ -562,7 +611,7 @@ Note: Root cause of the "Firefox works, Chrome fails" pattern: Firefox probes ne
 Severity: fatal
 Platform: Windows
 Displayed message: "Protected tracks not supported."
-Cause chain: Play track (DRM protected) -> Platform DRM check -> DRM disabled
+Cause chain: Play track (DRM protected) -> Platform DRM check -> DRM unavailable
 Causes:
   - DRM disabled in browser settings
   - Enterprise browser policy disabling EME
@@ -570,23 +619,27 @@ Resolution:
   1. Chrome: Settings → Content → Protected Content → Allow
   2. Check chrome://policy/ for policies disabling EME
   3. Use the Spotify desktop app (independent DRM stack)
+Note: Distinct from the "CDM missing" page. When a track is flagged DRM-protected but the platform reports no usable protection, the engine raises DISALLOW_PROTECTED_TRACK_ERROR - this is one of the few ek faults with its own dedicated text ("Protected tracks not supported.") rather than the generic message. If instead the key system itself is absent you get EME_NO_SUPPORTED_KEYSYSTEM and the full "Playback of protected content is not enabled" page.if (track.isProtected &amp;&amp; !platformDrmAvailable)
+    throw DISALLOW_PROTECTED_TRACK_ERROR;   // "Protected tracks not supported."
 
 ### CAPPING_USER_IS_CAPPED - Free tier monthly listening limit reached
 Severity: warn
 Platform: Windows
 Displayed message: "User is capped."
-Cause chain: Play request (free tier) -> Monthly quota -> Limit reached
+Cause chain: Play request (free tier) -> Monthly quota check -> USER_CAPPING_REACHED
 Causes:
   - Free plan listening quota for the month exhausted
 Resolution:
   1. Wait for the monthly limit to reset on the 1st
   2. Upgrade to Spotify Premium
+Note: Opens an upsell, not a snackbar. In the dispatcher waterfall the USER_CAPPING_REACHED reason is handled before the default text - it opens the capping/Premium upsell modal instead of a one-line message. The underlying CAPPING_USER_IS_CAPPED engine fault is what flags the play request as over-quota.if (reasons.has(USER_CAPPING_REACHED))
+    return openCappingUpsell();   // Premium prompt, before default snackbar
 
 ### MEDIA_DECODING_ERROR - Audio decoding error
 Severity: error
 Platform: Windows
 Displayed message: "Media decoding error."
-Cause chain: Audio segment (from CDN) -> SourceBuffer -> Decoder -> MEDIA_ERR_DECODE
+Cause chain: Audio segment (from CDN) -> Media element decode -> error.code === 3
 Causes:
   - Corrupted audio segment from CDN
   - Codec unsupported by platform
@@ -597,6 +650,13 @@ Resolution:
   2. Restart Spotify to reset the audio pipeline
   3. Update graphics and audio drivers
   4. Try disabling hardware acceleration in Spotify Settings
+Note: Surfaced by the media element. MEDIA_DECODING_ERROR is the engine's name for the browser media element firing error code 3 (MEDIA_ERR_DECODE) - the bytes arrived but the decoder rejected them. (Its siblings: code 2 → MEDIA_NETWORK_ERROR, code 4 → MEDIA_NOT_SUPPORTED.) It wraps into the default playback error.audioEl.onerror = (e) =&gt; {
+  switch (audioEl.error.code) {
+    case 2: throw MEDIA_NETWORK_ERROR;   // MEDIA_ERR_NETWORK
+    case 3: throw MEDIA_DECODING_ERROR;  // MEDIA_ERR_DECODE  ← here
+    case 4: throw MEDIA_NOT_SUPPORTED;   // MEDIA_ERR_SRC_NOT_SUPPORTED
+  }
+};A single bad track that plays fine on retry is usually a corrupt CDN segment; every track failing points at the local audio/graphics stack (drivers, hardware acceleration).
 
 ### Exclusive mode playback failure - Content won't play in exclusive audio mode
 Severity: warn
@@ -615,7 +675,7 @@ Note: macOS only. Exclusive mode takes exclusive CoreAudio access to the output 
 Severity: fatal
 Platform: Windows & macOS
 Displayed message: "(Forced update modal - playback is blocked until you update.)"
-Cause chain: Playback / handshake -> Version check -> Version sunset
+Cause chain: Handshake / license resolve -> Version check -> Sunset → forced modal
 Causes:
   - Spotify servers no longer support this client version
   - License API version too old for the current client
@@ -623,12 +683,43 @@ Resolution:
   1. Update Spotify to the latest version
   2. macOS: download the current installer from spotify.com/download
   3. Restart Spotify after updating
+Note: A pre-switch special case. Unlike the playback-restriction reasons, a sunset version doesn't produce a snackbar - it short-circuits before the dispatcher switch and opens a blocking update modal. It can be signalled two ways: the access-point handshake/playback response flags the version, or the license resolver returns a deprecated-version code.if (event.code == CLIENT_VERSION_SUNSETTED ||
+    ekError == LICENSE_RESOLVER_DEPRECATED_VERSION) {
+    openForcedUpdateModal();   // playback blocked until updated
+    return;                    // never reaches the snackbar switch
+}
+
+### ONE_TRACK_UNPLAYABLE (playback dispatcher) - How playback errors become on-screen messages
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Spotify can't play this right now. If you have the file on your computer you can import it."
+Cause chain: Track load fails -> ONE_TRACK_UNPLAYABLE -> reasons[] waterfall -> snackbar / modal
+Causes:
+  - A track failed to load for any of the reasons handled in the waterfall (region, Premium, offline, capping, user-ban)
+  - A low-level engine fault (DRM, fragment, decode) that has no specific reason, so it shows the default message
+Resolution:
+  1. Identify the specific reason from the message shown, then see the matching entry below
+  2. Skip and replay - transient faults recover automatically
+  3. Log out and back in to refresh tokens if many tracks fail
+Note: One switch drives every playback snackbar. When a track can't play, the engine emits a ONE_TRACK_UNPLAYABLE event carrying a reasons[] array. A single dispatcher walks those reasons in priority order and returns the first match - which is why a region block wins over a Premium gate, and that over offline mode. A few reasons skip the switch and open a modal instead. This is the shared layer behind most of the playback entries below, identical on macOS and Windows.switch (event.code) {
+  case ONE_TRACK_UNPLAYABLE:
+    if (reasons.has(AGE_ASSURANCE_REQUIRED))      return openAgeModal();        // pre-switch
+    if (reasons.has(EXPLICIT_CONTENT_FILTERED))   return openExplicitModal();    // pre-switch
+    if (reasons.has(NOT_AVAILABLE_IN_CURRENT_REGION)) return "...in your region...";
+    if (reasons.has(NOT_AVAILABLE_IN_NON_PREMIUM))    return "Spotify can't play this right now.";
+    if (reasons.has(NOT_AVAILABLE_OFFLINE))           return "turn off offline mode and try again";
+    if (reasons.has(USER_CAPPING_REACHED))            return openCappingUpsell();
+    if (reasons.has(BANNED_BY_USER_ARTIST))           return "allow this artist in the phone app";
+    return "Spotify can't play this right now. ...import it.";   // default
+  case TIMEOUT:
+    return "Network connection failed while playing this content.";
+}The low-level engine faults (DRM, fragment, decode) don't print their own text - they get wrapped into this event and fall through to the default message, unless they map to a more specific reason.
 
 ### NOT_AVAILABLE_IN_CURRENT_REGION - Track not available in your region
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Spotify can't play this track in your region. If you have the file on your computer you can import it."
-Cause chain: Play track -> Region check -> Geo-restricted
+Cause chain: Play track -> Server region check -> NOT_AVAILABLE_IN_CURRENT_REGION
 Causes:
   - Track licensing doesn't cover your account's country
   - VPN making you appear in a different region
@@ -637,47 +728,54 @@ Resolution:
   1. Disable VPN and retry
   2. Update your account country at spotify.com → Edit Profile
   3. Import a local copy of the file if you own it
+Note: Reason NOT_AVAILABLE_IN_CURRENT_REGION - the highest-priority non-modal branch of the playback dispatcher above, so it wins over a Premium gate or offline mode when several reasons apply at once. The region is decided server-side from your account country, not the track UI.
 
 ### NOT_AVAILABLE_IN_NON_PREMIUM - Track requires Premium
 Severity: warn
 Platform: Windows & macOS
 Displayed message: "Spotify can't play this right now."
-Cause chain: Play track (free tier) -> Premium-only content
+Cause chain: Play track (free tier) -> Premium check -> NOT_AVAILABLE_IN_NON_PREMIUM
 Causes:
   - Track or feature is Premium-only on a free account
 Resolution:
   1. Upgrade to Spotify Premium
   2. Choose a track available on the free tier
+Note: Reason NOT_AVAILABLE_IN_NON_PREMIUM in the dispatcher waterfall (just below region). The generic "can't play this right now" text is intentional - the same string is reused for several Premium-gated cases, which is why the message looks vague.
 
 ### BANNED_BY_USER_ARTIST / _TRACK - Artist or track hidden by you
 Severity: info
 Platform: Windows & macOS
 Displayed message: "We can't play this until you allow this artist in the Spotify phone app."
-Cause chain: Play track -> User block list
+Cause chain: Play track -> Account block list -> BANNED_BY_USER_*
 Causes:
   - You previously hid or blocked this artist or track
   - The block list is managed from the Spotify mobile app
 Resolution:
   1. Open the Spotify phone app and allow the artist or track again
   2. On desktop, some accounts can unblock via "You asked us not to play this artist"
+Note: Reasons BANNED_BY_USER_ARTIST / BANNED_BY_USER_TRACK in the waterfall. The block list is account-level (set from the mobile app), so the desktop client can't always clear it - hence the message points you back to the phone app. Some accounts also see the desktop variant "You asked us not to play this artist."
 
 ### AUDIO_FORMAT_NEGOTIATION_FAIL - Audio format negotiation failed
 Severity: error
 Platform: Windows & macOS
 Displayed message: "(Opens an audio format negotiation dialog.)"
-Cause chain: Track load -> Format negotiation -> No agreed format
+Cause chain: Track load -> Propose formats -> Server accepts none
 Causes:
   - Client and server couldn't agree on an audio codec / format to use
 Resolution:
   1. Restart Spotify and retry
   2. Update to the latest version
   3. Change audio quality in Settings → Playback
+Note: Also a pre-switch modal. On track load the client proposes a set of audio formats/codecs; if the server accepts none of them, the engine raises AUDIO_FORMAT_NEGOTIATION_FAIL, which bypasses the snackbar switch and opens a dedicated format dialog rather than a one-line message.formats = proposeAudioFormats();        // by quality + codec support
+if (!server.accepts(formats))
+    dispatch(AUDIO_FORMAT_NEGOTIATION_FAIL); // → open format dialog
+Changing the audio-quality setting changes which formats are proposed, which is why toggling it often clears this.
 
 ### video-unsupported-key-system - Video DRM not available
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Hmm... we can't seem to play this content. Try installing the latest version of Spotify."
-Cause chain: Play video -> Video DRM check -> Key system unavailable
+Cause chain: Play video -> requestMediaKeySystemAccess() -> No key system
 Causes:
   - Video DRM (key system) not available in this client
   - Client too old for video playback
@@ -685,12 +783,19 @@ Resolution:
   1. Update to the latest Spotify version
   2. Restart Spotify after updating
   3. Reinstall if video still won't play
+Note: EME probe failed for video. Protected video asks the embedded browser layer for a key system via requestMediaKeySystemAccess(); if none is available (or the API throws NotSupportedError), playback fails with this message. It is the video sibling of the audio "Playback of protected content is not enabled" / EME_NO_SUPPORTED_KEYSYSTEM path.try {
+  await navigator.requestMediaKeySystemAccess(
+        ["com.widevine.alpha", ...], cfg);   // CDM probe
+} catch (NotSupportedError) {
+  show("Hmm... we can't seem to play this content. " +
+       "Try installing the latest version of Spotify.");
+}
 
 ### fatal-error / error.generic - Something went wrong (client UI error)
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Something went wrong. / An error occurred. (RELOAD PAGE)"
-Cause chain: UI render -> Unhandled error
+Cause chain: UI render -> Unhandled JS throw -> non-fatal dialog  or  fatal page
 Causes:
   - Unclassified client-side error in the app UI
   - Corrupted cache or a transient render fault
@@ -699,6 +804,7 @@ Resolution:
   2. Restart Spotify
   3. Clear cache: Settings → Storage → Clear cache
   4. Reinstall if it keeps happening
+Note: The genuine UI-layer fault. Unlike the playback errors, this isn't a dispatched event - it's the React UI itself throwing during render. A non-fatal throw shows the "Something went wrong / Try reloading the page" dialog; a fatal one replaces the view with an "An error occurred" page and a RELOAD PAGE button. A corrupt cache is the most common repeatable cause.
 
 ## Installer
 
@@ -748,12 +854,23 @@ Resolution:
   2. If Spotify is already open, quit it first ("Please quit Spotify and try again") and retry
   3. Delete any partial Spotify.app in /Applications or ~/Applications, then reinstall
   4. Re-download a fresh .dmg from spotify.com/download
+Note: What it actually is. "Extraction" here means copying Spotify.app off the mounted disk image to the install location. Before copying, the installer picks a destination - ~/Applications if writable, otherwise /Applications (which sets needsAuthorization = true). It also force-quits any running Spotify first; if Spotify won't quit within 5 seconds you get a separate "Please quit Spotify and try again" prompt instead of this error. Code -2 is raised only when the unprivileged copy itself fails.// moveBundleToApplicationsFolderFromMountPoint:
+dst = writable(~/Applications) ? ~/Applications : /Applications
+
+for (app in runningApplications)            // pre-flight
+    if (app.bundleURL.path == dst) {
+        [app terminate]; pollUntilTerminated(5s);
+        if (!terminated) return showQuitSpotifyAlert();
+    }
+
+if (!CopyApplication(srcURL, dstURL, uid, gid))   // the copy
+    error = [NSError ... code:-2];           // "extraction failed"So a code -2 almost always means the destination ran out of space, the app bundle was missing from a corrupt image, or the volume was unmounted mid-copy.
 
 ### com.spotify.installer −3 - Disk image mount failed (macOS installer)
 Severity: error
 Platform: macOS
 Displayed message: "An error occurred while trying to mount the downloaded Spotify disk image."
-Cause chain: Downloaded .dmg -> hdiutil attach -> Non-zero exit / no volume
+Cause chain: Downloaded .dmg -> hdiutil attach -> exit≠0  OR  no /Volumes/
 Causes:
   - Corrupt or truncated .dmg download
   - macOS security (Gatekeeper) blocked mounting from a temporary location
@@ -764,12 +881,23 @@ Resolution:
   2. Re-download the installer - a truncated file is the most common cause
   3. Restart the Mac to clear stale mounts and retry
   4. Mount the .dmg manually by double-clicking it, then drag Spotify into Applications
+Note: Two independent checks raise this. The installer mounts the downloaded image by shelling out to hdiutil, then inspects the result twice: the process must exit zero and its stdout must contain a /Volumes/ mount path. If either check fails, it raises code -3 with the same message.// installDMG:error:
+NSTask: /usr/bin/hdiutil attach &lt;dmg&gt; -noautoopen -noidme -nobrowse
+
+if (task.terminationStatus != 0)             // check 1: exit code
+    return error(code:-3);
+
+output = readStdout();
+if ([output rangeOfString:@"/Volumes/"].location == NSNotFound)  // check 2
+    return error(code:-3);
+
+mountPoint = substringFrom("/Volumes/");      // successSo check 1 fires on a corrupt/truncated download or a Gatekeeper-blocked mount; check 2 fires in the rare case hdiutil succeeds but reports the volume somewhere other than stdout (e.g. a name collision with an already-mounted Spotify volume).
 
 ### com.spotify.installer −4 - Install failed (macOS installer)
 Severity: error
 Platform: macOS
 Displayed message: "An error occurred while trying to install Spotify."
-Cause chain: Copy to Applications -> Admin authorization -> Privileged copy fails
+Cause chain: Copy to Applications -> AuthorizationCopyRights -> Privileged copy fails
 Causes:
   - Wrong admin password, or admin authorization denied
   - Destination (/Applications) not writable or protected by System Integrity Protection
@@ -780,13 +908,24 @@ Resolution:
   2. Quit Spotify completely (including the menu-bar item) before installing
   3. Install to ~/Applications (your home folder) to avoid needing admin rights
   4. Free up disk space, then retry
-Note: Cancelling is different: clicking Cancel on the macOS password prompt is treated as errAuthorizationCanceled (−60006) and aborts the install silently - no error alert is shown, the installer window just stays open.
+Note: The privileged path. When the destination needs admin rights, the installer requests system.privilege.admin via AuthorizationCopyRights and then runs the copy as a sequence of privileged shell commands. Any failure in that chain returns false, which the caller turns into code -4.status = AuthorizationCopyRights(authRef,
+            {"system.privilege.admin"},
+            {"prompt":"Spotify needs permission to install."}, ...);
+
+if (status == errAuthorizationCanceled)   // -60006: user hit Cancel
+    { didUserCancel = YES; return NO; }   //   → silent abort, NO alert
+if (status != errAuthorizationSuccess)    // wrong password / denied
+    return NO;                            //   → code -4 → alert
+
+// with rights, via AuthorizationExecuteWithPrivileges:
+//   mv old aside · cp -pR src dst · chown · chmod · find -exec chmod · rm -rf old
+// any step failing → return NO → code -4Cancelling is special: clicking Cancel on the password prompt is errAuthorizationCanceled (−60006) and aborts silently - the window just stays open, no "Installation Failed" alert. A wrong password, a SIP-protected destination, or a disk-full during the privileged cp all surface as code -4.
 
 ### com.spotify.installer (generic) - Generic install failure (macOS installer)
 Severity: error
 Platform: macOS
 Displayed message: "An error occurred while trying to install Spotify."
-Cause chain: Any phase -> OS / file error -> Unmapped code
+Cause chain: writeToFile: / OS error -> Unmapped code -> default branch
 Causes:
   - A file-write error while saving the downloaded image to a temp folder (e.g. out of space)
   - An operating-system error not mapped to a specific installer code
@@ -794,12 +933,20 @@ Resolution:
   1. Free up disk space - the installer writes a temporary copy of the .dmg before installing
   2. Restart and retry
   3. Download and install manually from spotify.com/download
+Note: The catch-all branch. Every fatal error funnels through one dispatcher that turns the NSError code into a message. It only special-cases -1, -2, -3, -4; anything else hits the default branch and shows the generic install-failed string.// friendlyDescriptionForErrorCode:
+switch (code) {
+  case -1: key = sInstallerOsxDownloadFailedErrorDescription;   break;
+  case -2: key = sInstallerOsxExtractionFailedErrorDescription; break;
+  case -3: key = sInstallerOsxMountFailedErrorDescription;      break;
+  case -4: key = sInstallerOsxInstallFailedErrorDescription;    break;
+  default: key = sInstallerOsxGenericErrorDescription;          // here
+}The most common real cause that lands here is the temp-file write in the "write the downloaded image to disk" step: if writeToFile: fails (typically out of space), its raw Cocoa/POSIX NSError is passed straight through the dispatcher and falls into this default branch.
 
 ### Unsupported Platform (macOS) - macOS version too old for this installer
 Severity: fatal
 Platform: macOS
 Displayed message: "Sorry, this version of Spotify is for macOS 12.0 or later."
-Cause chain: Install Spotify.app -> OS version check -> macOS < 12.0
+Cause chain: applicationDidFinishLaunching -> Gestalt version check -> major < 12
 Causes:
   - Mac is running macOS 11 (Big Sur) or earlier
   - The current Spotify installer requires macOS 12 (Monterey) or newer
@@ -807,6 +954,14 @@ Resolution:
   1. Click "Find installers for older versions" in the dialog to get a compatible build
   2. Update macOS to 12.0 or later if your Mac supports it
   3. Use an older Spotify installer compatible with your macOS version
+Note: The check. Right after launch the installer calls isSupportedPlatform, which reads the OS major/minor version through the legacy Gestalt() API and compares it against _spMinSupportedOSVersion = "12.0". This is a separate alert path - it is not a com.spotify.installer error code, so it shows its own "Unsupported Platform" dialog rather than "Installation Failed".// isSupportedPlatform
+Gestalt('sysv1', &major);   // OS major
+Gestalt('sysv2', &minor);   // OS minor
+return (major &gt;= 12);       // _spMinSupportedOSVersion = "12.0"
+
+// applicationDidFinishLaunching:
+if (!isSupportedPlatform)
+    showUnsupportedPlatformAlert();   // → "Find installers for older versions" / terminateNote the Info.plist lists LSMinimumSystemVersion 10.11, but this runtime check is what actually enforces macOS 12.
 
 ## Web API
 
@@ -814,7 +969,7 @@ Resolution:
 Severity: error
 Platform: Windows & macOS
 Displayed message: "{"error": "invalid_client", "error_description": "Invalid client secret"}"
-Cause chain: Developer app -> OAuth server -> Wrong secret
+Cause chain: POST /api/token -> Basic auth check -> 401 invalid_client
 Causes:
   - Wrong client_id or client_secret in your code
   - Using credentials from the wrong Dashboard app
@@ -822,24 +977,33 @@ Causes:
 Resolution:
   1. Verify credentials in developer.spotify.com/dashboard
   2. If the secret was regenerated, update it in your code or environment variables
+Note: Fails at the token endpoint. The token request authenticates the app with HTTP Basic auth (base64(client_id:client_secret)); a mismatch returns 401 invalid_client before any scope or user check. A regenerated secret invalidates the old one immediately.POST https://accounts.spotify.com/api/token
+Authorization: Basic base64(client_id + ":" + client_secret)
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+// wrong id/secret → 401 {"error":"invalid_client"}
 
 ### HTTP 403 - PREMIUM_REQUIRED - Player control requires Premium
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Player command failed: Premium required"
-Cause chain: POST /v1/me/player -> Subscription check -> Free account
+Cause chain: PUT/POST /v1/me/player -> User-token + Premium check -> 403 PREMIUM_REQUIRED
 Causes:
   - User does not have Spotify Premium
   - Using Client Credentials OAuth flow for player endpoints (user auth flow required)
 Resolution:
   1. Ensure the user has Spotify Premium
   2. Use Authorization Code Flow or PKCE - not Client Credentials - for all /me/player/* endpoints
+Note: Two preconditions, one error. The /v1/me/player/* endpoints require both a user-authorized token (Authorization Code or PKCE - never Client Credentials) and a Premium account. Missing either yields 403 PREMIUM_REQUIRED. A Client-Credentials token has no user attached, so it can never satisfy these endpoints.PUT /v1/me/player/play
+Authorization: Bearer &lt;user-token, scope user-modify-playback-state&gt;
+// free account OR app-only token → 403 {"reason":"PREMIUM_REQUIRED"}
 
 ### HTTP 404 - NO_ACTIVE_DEVICE - No active Spotify device
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Player command failed: No active device found"
-Cause chain: Player command -> Device lookup -> No device active
+Cause chain: Player command -> Active-device lookup -> 404 NO_ACTIVE_DEVICE
 Causes:
   - No Spotify client open on user account
   - Stale cached device ID - it changes each session
@@ -848,24 +1012,31 @@ Resolution:
   1. Ensure a Spotify client is open before making player API calls
   2. Call GET /v1/me/player/devices to refresh the list before issuing commands
   3. Pass an explicit device_id in the request body
+Note: The API has no device to target. Player commands act on the account's active device. If no client is currently playing/idle-active, or the cached device_id has rotated (it changes per session), the command returns 404 NO_ACTIVE_DEVICE. Refresh the device list first, or pass an explicit device_id.GET  /v1/me/player/devices            // → list, pick an id
+PUT  /v1/me/player/play?device_id=&lt;id&gt; // target it explicitly
+// no open client / stale id → 404 NO_ACTIVE_DEVICE
 
 ### HTTP 403 - RESTRICTION_VIOLATED - Playback restriction violated
 Severity: error
 Platform: Windows & macOS
 Displayed message: "Player command failed: Restriction violated"
-Cause chain: Player command -> Context disallows -> HTTP 403
+Cause chain: Player command -> actions.disallows check -> 403 RESTRICTION_VIOLATED
 Causes:
   - Skipping in a context that disallows it (radio, free tier)
   - Attempting to control playback when not the active controller
 Resolution:
   1. Check the disallows object in GET /v1/me/player before issuing the command
   2. Ensure Premium for full playback control API access
+Note: The context said no. Every playback context exposes a disallows object listing actions that aren't currently permitted (e.g. skipping in radio, seeking in an ad). Issuing a disallowed action returns 403 RESTRICTION_VIOLATED. Check disallows before acting rather than catching the error.GET /v1/me/player
+// → { "actions": { "disallows": { "skipping_next": true, ... } } }
+if (!state.actions.disallows.skipping_next) skipNext();
+// otherwise → 403 RESTRICTION_VIOLATED
 
 ### HTTP 429 - Too Many Requests - Rate limit exceeded
 Severity: warn
 Platform: Windows & macOS
 Displayed message: "HTTP 429 Too Many Requests - see Retry-After header."
-Cause chain: Burst of requests -> Spotify rate limiter -> 429 + Retry-After
+Cause chain: Burst of requests -> Rolling-window limiter -> 429 + Retry-After
 Causes:
   - Sending too many requests per unit time
   - Polling-based architecture making rapid repeated calls
@@ -873,3 +1044,9 @@ Resolution:
   1. Implement exponential backoff using the Retry-After value in the response header
   2. Cache API responses to reduce repeated identical requests
   3. Use Spotify Connect state events instead of polling /v1/me/player
+Note: Honor the header, don't guess. Spotify rate-limits on a rolling window per app; when you exceed it the response is 429 with a Retry-After header (seconds). The correct handling is to wait exactly that long, then resume - fixed sleeps either waste time or get throttled again.resp = await fetch(api);
+if (resp.status === 429) {
+  const wait = Number(resp.headers.get("Retry-After")) * 1000;
+  await sleep(wait);          // exact backoff from the server
+  return retry();
+}Polling /v1/me/player is the usual culprit; cache responses or use Connect state events instead.
