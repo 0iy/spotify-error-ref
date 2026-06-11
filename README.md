@@ -5,17 +5,17 @@
 [![Stars](https://badgen.net/github/stars/0iy/spotify-error-ref)](https://github.com/0iy/spotify-error-ref/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-community reference for spotify desktop client error codes. documents the cause chain, trigger condition, and resolution steps for each known error.
+community reference for spotify desktop client error codes on windows and macos. documents the cause chain, trigger condition, and resolution steps for each known error.
 
 **[→ open the reference](https://0iy.github.io/spotify-error-ref)**
 
-> **windows only, for now.** i've only verified these on windows - haven't run into any of them on macOS myself. if you hit one on a mac, [open an issue](https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml&os=macOS) and i'll add it.
+> **windows & macos.** most client errors are shared across both platforms (same embedded ui), so they're tagged cross-platform. the installer codes differ per os - windows installer errors (18/24/30) and the macos installer codes (com.spotify.installer -1...-4) are listed separately. use the platform filter on the site to narrow to your os. missing one? [open an issue](https://github.com/0iy/spotify-error-ref/issues/new?template=new-error-code.yml).
 
 ---
 
 ## what's in here
 
-40+ error codes across every subsystem of the spotify desktop client, including:
+60+ error codes across every subsystem of the spotify desktop client, including:
 
 - `auth:N` - authentication and login failures
 - `accounts:N` - account validation, region, subscription errors
@@ -23,7 +23,9 @@ community reference for spotify desktop client error codes. documents the cause 
 - `session:N` - post-login session errors
 - `desktop_login_accounts:N` - browser OAuth flow errors
 - EME / Widevine DRM errors - why chrome and spotify fail while firefox works
-- installer errors (18, 24, 30)
+- playback errors (region/premium/offline gating, fragment + format failures, video)
+- windows installer errors (18, 24, 30)
+- macos installer errors (com.spotify.installer -1...-4, unsupported platform)
 - web API errors (developer-facing)
 
 each entry includes:

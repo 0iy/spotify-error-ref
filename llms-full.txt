@@ -2,7 +2,8 @@
 
 Source: https://0iy.github.io/spotify-error-ref/
 Repository: https://github.com/0iy/spotify-error-ref
-Scope: Windows desktop client. 41 error codes documented.
+Scope: Windows and macOS desktop client. 61 error codes documented.
+Most client errors are shared across Windows and macOS; the installer codes differ per OS. Each entry below is tagged with the platform it applies to.
 Unofficial community reference based on observed client behavior and user-reported reproduction cases. Not affiliated with or endorsed by Spotify AB.
 
 
@@ -10,6 +11,7 @@ Unofficial community reference based on observed client behavior and user-report
 
 ### auth:1 - Service temporarily unavailable
 Severity: error
+Platform: Windows
 Displayed message: "Service is temporarily unavailable, please try again later."
 Cause chain: App start -> Auth servers (AP cluster) -> TCP connect (port 443) -> Timeout
 Causes:
@@ -24,6 +26,7 @@ Resolution:
 
 ### auth:2 - Authentication failure
 Severity: error
+Platform: Windows
 Displayed message: "Service is temporarily unavailable, please try again later. - or - The username or password is incorrect."
 Cause chain: Login form -> Auth request -> Token validation (server-side) -> Rejected
 Causes:
@@ -40,6 +43,7 @@ Resolution:
 
 ### auth:3 - Firewall or proxy blocking auth
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. Please update your firewall to allow Spotify."
 Cause chain: Auth request -> Firewall -> Proxy / VPN -> AP server unreachable
 Causes:
@@ -55,6 +59,7 @@ Resolution:
 
 ### auth:73 - Region mismatch or auth blocked
 Severity: error
+Platform: Windows
 Displayed message: "Error code auth:73 - region or firewall block variant."
 Cause chain: Auth request -> GeoIP check -> Country mismatch -> Rejected
 Causes:
@@ -69,6 +74,7 @@ Resolution:
 
 ### accounts:4 - No internet connection detected
 Severity: fatal
+Platform: Windows
 Displayed message: "No internet connection detected."
 Cause chain: netprofm (Windows NLA service) -> INetworkListManager (COM) -> Chromium NCN -> navigator.onLine = false -> Error shown
 Causes:
@@ -87,6 +93,7 @@ Note: Why Firefox works but Chrome and Spotify fail: This error fires entirely c
 
 ### accounts:3 - Incorrect username or password
 Severity: error
+Platform: Windows
 Displayed message: "The username or password is incorrect."
 Cause chain: Login form -> accounts service -> Code 3
 Causes:
@@ -100,6 +107,7 @@ Resolution:
 
 ### accounts:53–55 - Proxy blocking Spotify (HTTP 401 / 403 / 407)
 Severity: error
+Platform: Windows
 Displayed message: "Your internet network is blocking Spotify. Contact your network administrator. (53 = proxy 401 · 54 = proxy 403 · 55 = proxy 407)"
 Cause chain: Auth request -> Proxy server -> HTTP 40x
 Causes:
@@ -113,6 +121,7 @@ Resolution:
 
 ### accounts:103 - Firewall blocking account validation
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. (Error code: accounts:103)"
 Cause chain: App launch -> Firewall -> accounts API unreachable
 Causes:
@@ -125,6 +134,7 @@ Resolution:
 
 ### accounts:127 - Session terminated by server
 Severity: error
+Platform: Windows
 Displayed message: "Your session has been terminated."
 Cause chain: Active session -> Server terminates -> Code 127
 Causes:
@@ -138,6 +148,7 @@ Resolution:
 
 ### accounts:402 - Critical client update required
 Severity: fatal
+Platform: Windows
 Displayed message: "Your client is being updated."
 Cause chain: Login attempt -> Version check -> Below minimum -> Code 402
 Causes:
@@ -151,6 +162,7 @@ Resolution:
 
 ### accounts:403 - Account disabled
 Severity: fatal
+Platform: Windows
 Displayed message: "Account disabled."
 Cause chain: Login -> Account status -> Suspended
 Causes:
@@ -163,6 +175,7 @@ Resolution:
 
 ### accounts:406 - Device not allowed for this account
 Severity: error
+Platform: Windows
 Displayed message: "Use of this device is not enabled for your account."
 Cause chain: Login -> Platform check -> Code 406
 Causes:
@@ -174,6 +187,7 @@ Resolution:
 
 ### accounts:407 - Incomplete account profile
 Severity: error
+Platform: Windows
 Displayed message: "User profile is not fully updated, please update your profile and log out and back in."
 Cause chain: Login -> Profile check -> Missing fields
 Causes:
@@ -186,6 +200,7 @@ Resolution:
 
 ### accounts:408 - Country mismatch
 Severity: error
+Platform: Windows
 Displayed message: "Your country does not match the one set in your profile."
 Cause chain: Login -> GeoIP check -> Country mismatch -> Code 408
 Causes:
@@ -200,6 +215,7 @@ Resolution:
 
 ### accounts:409 - Premium users only
 Severity: error
+Platform: Windows
 Displayed message: "This app is restricted to Premium users only."
 Cause chain: Login -> Subscription check -> Free account
 Causes:
@@ -212,6 +228,7 @@ Resolution:
 
 ### accounts:413 - Email already registered
 Severity: info
+Platform: Windows
 Displayed message: "Email is already connected to another user."
 Cause chain: Signup -> Email lookup -> Conflict
 Causes:
@@ -222,6 +239,7 @@ Resolution:
 
 ### accounts:417 - Facebook credentials revoked
 Severity: error
+Platform: Windows
 Displayed message: "(No message shown - locale string is absent, a known client bug.)"
 Cause chain: Facebook OAuth -> FB token -> Code 417 (blank message)
 Causes:
@@ -235,6 +253,7 @@ Note: Known bug: accounts:417 has no English locale entry in the Spotify transla
 
 ### accounts:critical-update-error - Automatic update failed
 Severity: fatal
+Platform: Windows
 Displayed message: "Please download the latest version from the Spotify website."
 Cause chain: Spotify updater -> CDN download -> Write to disk -> Fails
 Causes:
@@ -250,6 +269,7 @@ Resolution:
 
 ### session:3 - Stored session token invalid
 Severity: error
+Platform: Windows
 Displayed message: "The username or password is incorrect."
 Cause chain: App launch -> Token resume -> Token invalid
 Causes:
@@ -261,6 +281,7 @@ Resolution:
 
 ### session:103 - Session handshake failed after browser login
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. (Error code: session:103)"
 Cause chain: Browser login -> spotify:// redirect -> Token exchange -> Fails
 Causes:
@@ -276,6 +297,7 @@ Resolution:
 
 ### desktop_login_accounts:2 - Browser login timed out
 Severity: error
+Platform: Windows
 Displayed message: "Login timed out, please try again. - or - Signup timed out, please try again."
 Cause chain: Browser opens -> User must act -> ~5 min timer expires -> Code 2
 Causes:
@@ -291,6 +313,7 @@ Note: Implementation detail: This is the only Spotify error code where the displ
 
 ### desktop_login_accounts:4 - OAuth token expired before use
 Severity: error
+Platform: Windows
 Displayed message: "Your session has expired, please try again."
 Cause chain: Browser login -> Token generated (short TTL) -> Clock skew / delay -> Token expired
 Causes:
@@ -304,6 +327,7 @@ Resolution:
 
 ### desktop_login_accounts:5 - Firewall blocking OAuth callback
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify."
 Cause chain: Browser login -> OAuth callback -> Firewall blocks it
 Causes:
@@ -319,6 +343,7 @@ Resolution:
 
 ### accesspoint:17 - Access point rejected - region or firewall
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. (Error code: 17 / accesspoint:17)"
 Cause chain: Spotify app -> VPN / proxy -> AP cluster -> GeoIP rejection
 Causes:
@@ -334,6 +359,7 @@ Note: What "accesspoint" means: This subsystem refers to Spotify's AP cluster - 
 
 ### accesspoint:22 - Client version rejected by access point
 Severity: error
+Platform: Windows
 Displayed message: "This app is restricted to Premium users only. (Error code: accesspoint:22)"
 Cause chain: Old client version -> AP handshake -> Version rejected
 Causes:
@@ -351,6 +377,7 @@ Note: Misleading message: Despite saying "Premium users only", this fires for al
 
 ### accesspoint:31 - No internet - AP connection failed
 Severity: error
+Platform: Windows
 Displayed message: "No internet connection detected. (Error code: accesspoint:31)"
 Cause chain: AP connect -> DNS resolve -> TCP connect -> Fails
 Causes:
@@ -364,6 +391,7 @@ Resolution:
 
 ### accesspoint:39 - Hosts file or firewall blocking AP
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify. (Error code: accesspoint:39)"
 Cause chain: AP connect -> Hosts file / firewall -> Connection denied
 Causes:
@@ -376,6 +404,7 @@ Resolution:
 
 ### accesspoint:50 - Network blocking Spotify at ISP or corporate level
 Severity: error
+Platform: Windows
 Displayed message: "Your internet network is blocking Spotify. Contact your network administrator."
 Cause chain: AP connect -> ISP / corporate gateway -> Blocked
 Causes:
@@ -387,6 +416,7 @@ Resolution:
 
 ### EME_LICENSE_REQUEST_FAILED_WITH_STATUS - DRM license request returned HTTP error
 Severity: error
+Platform: Windows
 Displayed message: "License request failed (HTTP status code)."
 Cause chain: Track load -> DRM license server -> HTTP 4xx / 5xx
 Causes:
@@ -400,6 +430,7 @@ Resolution:
 
 ### Error 30 - Proxy or firewall blocking connections
 Severity: error
+Platform: Windows
 Displayed message: "A firewall may be blocking Spotify."
 Cause chain: Network request -> System proxy -> Proxy / VPN
 Causes:
@@ -412,10 +443,105 @@ Resolution:
   3. Disable VPN or configure split-tunnel to exclude Spotify
   4. Check C:\Windows\System32\drivers\etc\hosts - remove Spotify-related entries
 
+### com.spotify.installer −1 - Download failed (macOS installer)
+Severity: error
+Platform: macOS
+Displayed message: "An error occurred while trying to download Spotify."
+Cause chain: Install Spotify.app -> HTTPS download -> Retry backoff -> Retries exhausted
+Causes:
+  - Spotify download server returned an HTTP error (4xx or 5xx)
+  - No network connectivity, DNS failure, or TLS error
+  - Request timed out
+  - App Transport Security blocked a non-HTTPS redirect
+Resolution:
+  1. Check your internet connection and try again
+  2. Disable any VPN or proxy and retry
+  3. Temporarily disable antivirus HTTPS inspection / network filtering
+  4. Download Spotify directly from spotify.com/download and open the .dmg yourself
+Note: How it surfaces: the installer retries with backoff first - it only shows the "Installation Failed" alert once all retries are exhausted. The alert button "Download from Spotify.com" opens the manual download page.
+
+### authorization-status (No connection) - Lost connection to Spotify (reconnecting)
+Severity: warn
+Platform: Windows & macOS
+Displayed message: "Couldn't connect to Spotify."
+Cause chain: Active session -> AP connection drops -> Reconnecting… -> Retry backoff
+Causes:
+  - Network change (Wi-Fi ↔ ethernet, VPN toggled)
+  - Mac/PC sleep-wake tore down the socket
+  - Spotify access-point maintenance or rolling restart
+  - Firewall rule changed while the app was open
+Resolution:
+  1. Wait - the client retries automatically with a countdown ("Retrying in…")
+  2. Click Retry in the top-bar "No connection" badge
+  3. Toggle Wi-Fi off and on, or reconnect your network
+  4. If it persists, fully quit and reopen Spotify
+
+### NOT_AVAILABLE_OFFLINE - Offline mode is blocking playback
+Severity: info
+Platform: Windows & macOS
+Displayed message: "Please turn off offline mode and try again."
+Cause chain: Play track -> Offline mode on
+Causes:
+  - Spotify Offline Mode is enabled
+  - The track isn't downloaded for offline use
+Resolution:
+  1. Turn off Offline Mode (Spotify menu → toggle off Offline Mode)
+  2. Download the track or playlist for offline use while online
+
+### FRAGMENT_REQUEST_FAILED_WITH_STATUS - Audio segment download failed
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Spotify can't play this right now. If you have the file on your computer you can import it."
+Cause chain: Next segment needed -> Audio CDN -> HTTP 403 / 404 / 503
+Causes:
+  - CDN returned an error: 403 (license expired), 404 (track removed / cache miss), or 503 (overloaded)
+  - Network interruption mid-stream
+Resolution:
+  1. Skip and replay the track - retryable errors recover automatically
+  2. Log out and back in to refresh your license token
+  3. Check your connection if many tracks fail in a row
+
+### max_subscriptions_reached - Too many Spotify instances open (tab limit)
+Severity: warn
+Platform: Windows & macOS
+Displayed message: "You've got too many tabs open. Close this one and continue listening."
+Cause chain: New session -> Instance limit
+Causes:
+  - Too many Spotify tabs or instances open on the same account
+Resolution:
+  1. Close other Spotify tabs or windows
+  2. Quit duplicate Spotify instances and reopen a single one
+
+### offline device-limit-reached - Offline device limit reached
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Remove all downloads from another device to listen offline with this one."
+Cause chain: Download for offline -> Device count check -> Limit reached
+Causes:
+  - Too many devices already have offline downloads for this account (typically 5)
+Resolution:
+  1. Remove downloads from a device you no longer use
+  2. Spotify allows offline downloads on a limited number of devices per account
+
+### connect.device-picker (restricted / unsupported) - Can't connect to this device
+Severity: warn
+Platform: Windows & macOS
+Displayed message: "Sorry, we can't connect to this device. / Update this device and the Spotify app."
+Cause chain: Device picker -> Target device -> Restricted / outdated
+Causes:
+  - Target device firmware too old ("No longer works with Spotify")
+  - Devices on different Wi-Fi networks
+  - Account restricted from this device type
+Resolution:
+  1. Put both devices on the same Wi-Fi network ("Check your WiFi")
+  2. Update the target device firmware and the Spotify app
+  3. Wake the device and retry
+
 ## DRM & Playback
 
 ### EME_NO_SUPPORTED_KEYSYSTEM - No DRM key system available
 Severity: fatal
+Platform: Windows
 Displayed message: "Playback of protected content is not enabled."
 Cause chain: Spotify JS -> EME API call -> Widevine CDM -> No CDM found
 Causes:
@@ -434,6 +560,7 @@ Note: Root cause of the "Firefox works, Chrome fails" pattern: Firefox probes ne
 
 ### DISALLOW_PROTECTED_TRACK_ERROR - DRM disabled - protected content blocked
 Severity: fatal
+Platform: Windows
 Displayed message: "Protected tracks not supported."
 Cause chain: Play track (DRM protected) -> Platform DRM check -> DRM disabled
 Causes:
@@ -446,6 +573,7 @@ Resolution:
 
 ### CAPPING_USER_IS_CAPPED - Free tier monthly listening limit reached
 Severity: warn
+Platform: Windows
 Displayed message: "User is capped."
 Cause chain: Play request (free tier) -> Monthly quota -> Limit reached
 Causes:
@@ -456,6 +584,7 @@ Resolution:
 
 ### MEDIA_DECODING_ERROR - Audio decoding error
 Severity: error
+Platform: Windows
 Displayed message: "Media decoding error."
 Cause chain: Audio segment (from CDN) -> SourceBuffer -> Decoder -> MEDIA_ERR_DECODE
 Causes:
@@ -469,10 +598,113 @@ Resolution:
   3. Update graphics and audio drivers
   4. Try disabling hardware acceleration in Spotify Settings
 
+### Exclusive mode playback failure - Content won't play in exclusive audio mode
+Severity: warn
+Platform: macOS
+Displayed message: "Exclusive mode is on, so this content won't play. Turn it off in settings to keep listening."
+Cause chain: Exclusive audio mode (CoreAudio) -> Unsupported content type
+Causes:
+  - Spotify is holding exclusive CoreAudio access to the output device
+  - The content type being played isn't supported while exclusive mode is on
+Resolution:
+  1. Turn off exclusive mode: Spotify Settings → Playback → disable exclusive output
+  2. Play the content, then re-enable exclusive mode afterwards if you want it
+Note: macOS only. Exclusive mode takes exclusive CoreAudio access to the output device; some content types can't play while it is engaged.
+
+### CLIENT_VERSION_SUNSETTED - Client version no longer supported
+Severity: fatal
+Platform: Windows & macOS
+Displayed message: "(Forced update modal - playback is blocked until you update.)"
+Cause chain: Playback / handshake -> Version check -> Version sunset
+Causes:
+  - Spotify servers no longer support this client version
+  - License API version too old for the current client
+Resolution:
+  1. Update Spotify to the latest version
+  2. macOS: download the current installer from spotify.com/download
+  3. Restart Spotify after updating
+
+### NOT_AVAILABLE_IN_CURRENT_REGION - Track not available in your region
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Spotify can't play this track in your region. If you have the file on your computer you can import it."
+Cause chain: Play track -> Region check -> Geo-restricted
+Causes:
+  - Track licensing doesn't cover your account's country
+  - VPN making you appear in a different region
+  - Account country is out of date
+Resolution:
+  1. Disable VPN and retry
+  2. Update your account country at spotify.com → Edit Profile
+  3. Import a local copy of the file if you own it
+
+### NOT_AVAILABLE_IN_NON_PREMIUM - Track requires Premium
+Severity: warn
+Platform: Windows & macOS
+Displayed message: "Spotify can't play this right now."
+Cause chain: Play track (free tier) -> Premium-only content
+Causes:
+  - Track or feature is Premium-only on a free account
+Resolution:
+  1. Upgrade to Spotify Premium
+  2. Choose a track available on the free tier
+
+### BANNED_BY_USER_ARTIST / _TRACK - Artist or track hidden by you
+Severity: info
+Platform: Windows & macOS
+Displayed message: "We can't play this until you allow this artist in the Spotify phone app."
+Cause chain: Play track -> User block list
+Causes:
+  - You previously hid or blocked this artist or track
+  - The block list is managed from the Spotify mobile app
+Resolution:
+  1. Open the Spotify phone app and allow the artist or track again
+  2. On desktop, some accounts can unblock via "You asked us not to play this artist"
+
+### AUDIO_FORMAT_NEGOTIATION_FAIL - Audio format negotiation failed
+Severity: error
+Platform: Windows & macOS
+Displayed message: "(Opens an audio format negotiation dialog.)"
+Cause chain: Track load -> Format negotiation -> No agreed format
+Causes:
+  - Client and server couldn't agree on an audio codec / format to use
+Resolution:
+  1. Restart Spotify and retry
+  2. Update to the latest version
+  3. Change audio quality in Settings → Playback
+
+### video-unsupported-key-system - Video DRM not available
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Hmm... we can't seem to play this content. Try installing the latest version of Spotify."
+Cause chain: Play video -> Video DRM check -> Key system unavailable
+Causes:
+  - Video DRM (key system) not available in this client
+  - Client too old for video playback
+Resolution:
+  1. Update to the latest Spotify version
+  2. Restart Spotify after updating
+  3. Reinstall if video still won't play
+
+### fatal-error / error.generic - Something went wrong (client UI error)
+Severity: error
+Platform: Windows & macOS
+Displayed message: "Something went wrong. / An error occurred. (RELOAD PAGE)"
+Cause chain: UI render -> Unhandled error
+Causes:
+  - Unclassified client-side error in the app UI
+  - Corrupted cache or a transient render fault
+Resolution:
+  1. Click "Reload page" if it is offered
+  2. Restart Spotify
+  3. Clear cache: Settings → Storage → Clear cache
+  4. Reinstall if it keeps happening
+
 ## Installer
 
 ### Installer error 18 - Files locked by another process
 Severity: error
+Platform: Windows
 Displayed message: "The installer is unable to install Spotify because the files to write to are in use by another process."
 Cause chain: NSIS installer -> Write to disk (%AppData%\Spotify) -> Files locked -> Error 18
 Causes:
@@ -488,6 +720,7 @@ Resolution:
 
 ### Installer error 24 - Incompatible install environment
 Severity: error
+Platform: Windows
 Displayed message: "Spotify installation error code 24."
 Cause chain: NSIS installer -> Environment check -> Conflict found
 Causes:
@@ -500,10 +733,86 @@ Resolution:
   3. Download a fresh installer from spotify.com/download (do not reuse a cached .exe)
   4. Try installing in Safe Mode with Networking
 
+### com.spotify.installer −2 - Extraction failed (macOS installer)
+Severity: error
+Platform: macOS
+Displayed message: "An error occurred while trying to extract Spotify."
+Cause chain: Mounted disk image -> Copy Spotify.app -> Copy fails
+Causes:
+  - Destination disk is full
+  - Spotify.app missing from the mounted image (corrupt download)
+  - Destination folder not writable
+  - Disk image unmounted mid-copy
+Resolution:
+  1. Free up disk space, then retry
+  2. If Spotify is already open, quit it first ("Please quit Spotify and try again") and retry
+  3. Delete any partial Spotify.app in /Applications or ~/Applications, then reinstall
+  4. Re-download a fresh .dmg from spotify.com/download
+
+### com.spotify.installer −3 - Disk image mount failed (macOS installer)
+Severity: error
+Platform: macOS
+Displayed message: "An error occurred while trying to mount the downloaded Spotify disk image."
+Cause chain: Downloaded .dmg -> hdiutil attach -> Non-zero exit / no volume
+Causes:
+  - Corrupt or truncated .dmg download
+  - macOS security (Gatekeeper) blocked mounting from a temporary location
+  - A disk image with the same volume name is already mounted
+  - No free loop device available to attach the image
+Resolution:
+  1. Eject any existing Spotify volume in Finder, then retry
+  2. Re-download the installer - a truncated file is the most common cause
+  3. Restart the Mac to clear stale mounts and retry
+  4. Mount the .dmg manually by double-clicking it, then drag Spotify into Applications
+
+### com.spotify.installer −4 - Install failed (macOS installer)
+Severity: error
+Platform: macOS
+Displayed message: "An error occurred while trying to install Spotify."
+Cause chain: Copy to Applications -> Admin authorization -> Privileged copy fails
+Causes:
+  - Wrong admin password, or admin authorization denied
+  - Destination (/Applications) not writable or protected by System Integrity Protection
+  - Disk full during the privileged copy
+  - Old Spotify.app locked or still in use
+Resolution:
+  1. Enter the correct administrator password when prompted
+  2. Quit Spotify completely (including the menu-bar item) before installing
+  3. Install to ~/Applications (your home folder) to avoid needing admin rights
+  4. Free up disk space, then retry
+Note: Cancelling is different: clicking Cancel on the macOS password prompt is treated as errAuthorizationCanceled (−60006) and aborts the install silently - no error alert is shown, the installer window just stays open.
+
+### com.spotify.installer (generic) - Generic install failure (macOS installer)
+Severity: error
+Platform: macOS
+Displayed message: "An error occurred while trying to install Spotify."
+Cause chain: Any phase -> OS / file error -> Unmapped code
+Causes:
+  - A file-write error while saving the downloaded image to a temp folder (e.g. out of space)
+  - An operating-system error not mapped to a specific installer code
+Resolution:
+  1. Free up disk space - the installer writes a temporary copy of the .dmg before installing
+  2. Restart and retry
+  3. Download and install manually from spotify.com/download
+
+### Unsupported Platform (macOS) - macOS version too old for this installer
+Severity: fatal
+Platform: macOS
+Displayed message: "Sorry, this version of Spotify is for macOS 12.0 or later."
+Cause chain: Install Spotify.app -> OS version check -> macOS < 12.0
+Causes:
+  - Mac is running macOS 11 (Big Sur) or earlier
+  - The current Spotify installer requires macOS 12 (Monterey) or newer
+Resolution:
+  1. Click "Find installers for older versions" in the dialog to get a compatible build
+  2. Update macOS to 12.0 or later if your Mac supports it
+  3. Use an older Spotify installer compatible with your macOS version
+
 ## Web API
 
 ### HTTP 401 - invalid_client - Wrong app credentials
 Severity: error
+Platform: Windows & macOS
 Displayed message: "{"error": "invalid_client", "error_description": "Invalid client secret"}"
 Cause chain: Developer app -> OAuth server -> Wrong secret
 Causes:
@@ -516,6 +825,7 @@ Resolution:
 
 ### HTTP 403 - PREMIUM_REQUIRED - Player control requires Premium
 Severity: error
+Platform: Windows & macOS
 Displayed message: "Player command failed: Premium required"
 Cause chain: POST /v1/me/player -> Subscription check -> Free account
 Causes:
@@ -527,6 +837,7 @@ Resolution:
 
 ### HTTP 404 - NO_ACTIVE_DEVICE - No active Spotify device
 Severity: error
+Platform: Windows & macOS
 Displayed message: "Player command failed: No active device found"
 Cause chain: Player command -> Device lookup -> No device active
 Causes:
@@ -540,6 +851,7 @@ Resolution:
 
 ### HTTP 403 - RESTRICTION_VIOLATED - Playback restriction violated
 Severity: error
+Platform: Windows & macOS
 Displayed message: "Player command failed: Restriction violated"
 Cause chain: Player command -> Context disallows -> HTTP 403
 Causes:
@@ -551,6 +863,7 @@ Resolution:
 
 ### HTTP 429 - Too Many Requests - Rate limit exceeded
 Severity: warn
+Platform: Windows & macOS
 Displayed message: "HTTP 429 Too Many Requests - see Retry-After header."
 Cause chain: Burst of requests -> Spotify rate limiter -> 429 + Retry-After
 Causes:

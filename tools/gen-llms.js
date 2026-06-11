@@ -25,6 +25,8 @@ const REPO = 'https://github.com/0iy/spotify-error-ref';
 const stripTags  = s => String(s).replace(/<[^>]+>/g, '');
 const fixText    = f => (Array.isArray(f) ? f.join(' ') : f);
 const chainText  = c => (c || []).map(n => (n.s ? `${n.l} (${n.s})` : n.l)).join(' -> ');
+const platOf     = e => e.plat || ((e.cat || []).includes('webapi') ? 'both' : 'win');
+const platLabel  = { win: 'Windows', mac: 'macOS', both: 'Windows & macOS' };
 
 const seen = new Set();
 const groups = [];
@@ -38,7 +40,7 @@ if (rest.length) groups.push({ label: 'Other', items: rest });
 
 let idx = '';
 idx += '# Spotify Desktop Error Reference\n\n';
-idx += '> Community reference for error codes in the Spotify desktop client (Windows). '
+idx += '> Community reference for error codes in the Spotify desktop client (Windows and macOS). '
      + 'Each error code is documented with its displayed message, the chain of components that '
      + 'leads to it, the conditions that trigger it, and step-by-step resolution.\n\n';
 idx += 'The website renders its content with JavaScript. The plain-text files linked below contain '
@@ -48,12 +50,14 @@ idx += `- [Full reference - all codes, causes, fixes](${SITE}llms-full.txt): com
 idx += `- [Website](${SITE}): interactive reference with search and filtering\n`;
 idx += `- [Source repository](${REPO}): contribute codes or corrections\n\n`;
 idx += '## Error codes\n';
-for (const g of groups) for (const e of g.items) idx += `- ${e.code} - ${stripTags(e.title)} (${e.sev})\n`;
+for (const g of groups) for (const e of g.items) idx += `- ${e.code} - ${stripTags(e.title)} (${e.sev}, ${platLabel[platOf(e)]})\n`;
 
 let full = '';
 full += '# Spotify Desktop Error Reference - Full Reference\n\n';
 full += `Source: ${SITE}\nRepository: ${REPO}\n`;
-full += `Scope: Windows desktop client. ${E.length} error codes documented.\n`;
+full += `Scope: Windows and macOS desktop client. ${E.length} error codes documented.\n`;
+full += 'Most client errors are shared across Windows and macOS; the installer codes differ per OS. '
+      + 'Each entry below is tagged with the platform it applies to.\n';
 full += 'Unofficial community reference based on observed client behavior and user-reported '
       + 'reproduction cases. Not affiliated with or endorsed by Spotify AB.\n\n';
 for (const g of groups) {
@@ -61,6 +65,7 @@ for (const g of groups) {
   for (const e of g.items) {
     full += `\n### ${e.code} - ${stripTags(e.title)}\n`;
     full += `Severity: ${e.sev}\n`;
+    full += `Platform: ${platLabel[platOf(e)]}\n`;
     if (e.msg) full += `Displayed message: "${stripTags(e.msg)}"\n`;
     if (e.chain && e.chain.length) full += `Cause chain: ${chainText(e.chain)}\n`;
     if (e.causes && e.causes.length) { full += 'Causes:\n'; e.causes.forEach(c => full += `  - ${stripTags(c)}\n`); }
